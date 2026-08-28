@@ -313,7 +313,9 @@ export default function WorkoutLogging() {
     try {
       const s = await getStarted()
       await completeSession(s.id)
-      navigate(`/day/${date}`, { replace: true })
+      // Reached via a flow, not a back-navigable page load — tag it so the Day
+      // Record's back arrow goes Home instead of into the completed log.
+      navigate(`/day/${date}`, { replace: true, state: { from: 'workout-complete' } })
     } catch (e) {
       setErr(e.message ?? 'Could not finish the workout.')
       setFinishAsk(false)

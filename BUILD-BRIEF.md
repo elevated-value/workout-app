@@ -50,6 +50,7 @@ Within v1, a sensible build sequence given what's already designed: set up the S
 
 ## A few things to keep front-of-mind while building
 
+- **Persistent bottom nav on every screen (instructions.md §6, rev. 23)** — Today / Library / Progress stays fixed and visible on *every* screen with no exceptions (Day Record, day builder, in-workout logging, workout-complete summary, Copy flows, everything). Only bottom sheets and confirm dialogs may temporarily cover it. A back arrow is never a screen's only way out. Login is the one exception (pre-auth, no destinations).
 - **AMRAP never has a Sets concept** — not a field, not a default, not in the data model for that format. See instructions.md §3.1, §3.4, and §4 (all three were explicitly corrected on this).
 - **No timer auto-starts on screen entry** — every timer (rest, AMRAP) requires an explicit Start action and has a visible Pause/Resume control. See §3.5.
 - **Soft-delete/archive**, not hard-delete, for exercises — see §3.1.

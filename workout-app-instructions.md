@@ -172,6 +172,7 @@ Constraint: **must run entirely on free tiers, no ongoing cost.**
 - Fast load and snappy interaction — this is used mid-workout, not browsed leisurely.
 - Minimal data entry friction: numeric keypads for weight/reps, large touch targets, avoid unnecessary confirmation dialogs.
 - Installable as a PWA (manifest.json, app icon, theme color, standalone display mode).
+- **Persistent bottom navigation (rev. 23) — hard requirement, every screen, no exceptions.** The bottom nav (Today / Library / Progress) stays visible and fixed on *every* screen: Home, Library, Manage Library / Add-Edit Exercise, Progress and its detail views, Body Weight, Day Record, the day builder / edit-a-day screen, in-workout logging (Straight Sets *and* AMRAP), the workout-complete summary, Copy flows — all of them. No full screen may be "back-arrow only." An in-app back action can fail or feel ambiguous depending on how the user navigated in (e.g. a screen reached by *finishing a workout* rather than a normal page load); the bottom nav is the one always-reliable way home. Only true modal overlays — bottom sheets and confirmation dialogs — may temporarily cover the nav while open. A screen may still show its own back arrow / Done / Cancel affordance in addition, but never as the only exit. The one intentional exception is the pre-auth Login screen, which has no navigation destinations. This applies to every screen already built and every screen still to build.
 
 ## 7. Out of Scope for v1 (future enhancements)
 

@@ -14,7 +14,10 @@ import ExerciseForm from './screens/ExerciseForm.jsx'
 import Progress from './screens/Progress.jsx'
 import ExerciseProgress from './screens/ExerciseProgress.jsx'
 
-function RequireAuth({ children }) {
+// Every authenticated route renders inside <AppShell>, which always shows the
+// bottom nav (spec §6). Login is the one exception — it is the pre-auth gate
+// with no navigation destinations.
+function Screen({ children }) {
   const { session, loading } = useAuth()
   const location = useLocation()
   if (loading) {
@@ -25,7 +28,7 @@ function RequireAuth({ children }) {
     )
   }
   if (!session) return <Navigate to="/login" replace state={{ from: location }} />
-  return children
+  return <AppShell>{children}</AppShell>
 }
 
 export default function App() {
@@ -38,107 +41,16 @@ export default function App() {
         element={loading ? null : session ? <Navigate to="/" replace /> : <Login />}
       />
 
-      <Route
-        path="/"
-        element={
-          <RequireAuth>
-            <AppShell nav>
-              <Home />
-            </AppShell>
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/library"
-        element={
-          <RequireAuth>
-            <AppShell nav>
-              <Library />
-            </AppShell>
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/progress"
-        element={
-          <RequireAuth>
-            <AppShell nav>
-              <Progress />
-            </AppShell>
-          </RequireAuth>
-        }
-      />
-
-      <Route
-        path="/calendar"
-        element={
-          <RequireAuth>
-            <AppShell>
-              <MonthCalendar />
-            </AppShell>
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/day/:date"
-        element={
-          <RequireAuth>
-            <AppShell>
-              <DayRecord />
-            </AppShell>
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/day/:date/build"
-        element={
-          <RequireAuth>
-            <AppShell>
-              <DayBuilder />
-            </AppShell>
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/day/:date/log"
-        element={
-          <RequireAuth>
-            <AppShell>
-              <WorkoutLogging />
-            </AppShell>
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/library/new"
-        element={
-          <RequireAuth>
-            <AppShell>
-              <ExerciseForm />
-            </AppShell>
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/library/:id"
-        element={
-          <RequireAuth>
-            <AppShell>
-              <ExerciseForm />
-            </AppShell>
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/progress/:exerciseId"
-        element={
-          <RequireAuth>
-            <AppShell>
-              <ExerciseProgress />
-            </AppShell>
-          </RequireAuth>
-        }
-      />
+      <Route path="/" element={<Screen><Home /></Screen>} />
+      <Route path="/library" element={<Screen><Library /></Screen>} />
+      <Route path="/library/new" element={<Screen><ExerciseForm /></Screen>} />
+      <Route path="/library/:id" element={<Screen><ExerciseForm /></Screen>} />
+      <Route path="/progress" element={<Screen><Progress /></Screen>} />
+      <Route path="/progress/:exerciseId" element={<Screen><ExerciseProgress /></Screen>} />
+      <Route path="/calendar" element={<Screen><MonthCalendar /></Screen>} />
+      <Route path="/day/:date" element={<Screen><DayRecord /></Screen>} />
+      <Route path="/day/:date/build" element={<Screen><DayBuilder /></Screen>} />
+      <Route path="/day/:date/log" element={<Screen><WorkoutLogging /></Screen>} />
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

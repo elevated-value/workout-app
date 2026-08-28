@@ -105,7 +105,7 @@ export default function DayBuilder() {
     } catch {
       /* non-fatal — worst case an empty session lingers */
     }
-    navigate(`/day/${date}`, { replace: true })
+    navigate(`/day/${date}`, { replace: true, state: { from: 'builder' } })
   }
 
   async function saveName() {

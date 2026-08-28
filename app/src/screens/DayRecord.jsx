@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import {
   PencilSimple,
   Play,
@@ -51,8 +51,15 @@ function ExerciseRow({ name, equip, tag, detail, dim, icon }) {
 export default function DayRecord() {
   const { date } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
   const { message, show } = useToast()
   const today = todayISO()
+
+  // Reached by finishing a workout or leaving the builder → those entries were
+  // replaced, so history-back is broken/ambiguous. Go Home instead. (The bottom
+  // nav is always there too, per §6 — this just makes the arrow do the sane thing.)
+  const cameFromFlow = location.state?.from === 'workout-complete' || location.state?.from === 'builder'
+  const onBack = () => (cameFromFlow ? navigate('/') : navigate(-1))
 
   const [data, setData] = useState(null)
   const [err, setErr] = useState(null)
@@ -74,7 +81,7 @@ export default function DayRecord() {
   if (err) {
     return (
       <>
-        <TopBar title={dateLabel} />
+        <TopBar title={dateLabel} onBack={onBack} />
         <ErrorNote>{err}</ErrorNote>
       </>
     )
@@ -82,7 +89,7 @@ export default function DayRecord() {
   if (data === null) {
     return (
       <>
-        <TopBar title={dateLabel} />
+        <TopBar title={dateLabel} onBack={onBack} />
         <Loading label="Loading" />
       </>
     )
@@ -140,6 +147,7 @@ export default function DayRecord() {
     <>
       <TopBar
         title={dateLabel}
+        onBack={onBack}
         right={
           editable ? (
             <button
