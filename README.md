@@ -27,7 +27,7 @@ designed screens, and the database SQL.
 | Workout Logging — AMRAP (start, countdown, rounds) | ✅ |
 | Copy previous week / Copy to date (+ overwrite confirm) | ⏳ |
 | Progress (exercise list + weight/bodyweight/time/AMRAP detail) | ✅ |
-| Body Weight tracking + Home quick-log | ⏳ |
+| Body Weight tracking + Home quick-log | ✅ |
 | Programs (§3.9) | Phase 2 — not in v1 |
 
 ## First-time setup

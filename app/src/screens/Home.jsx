@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Flame, Barbell, Play, Plus, CaretRight, Check } from '@phosphor-icons/react'
-import { Loading, ErrorNote } from '../components/ui.jsx'
+import { Flame, Barbell, Play, Plus, CaretRight, Check, Scales } from '@phosphor-icons/react'
+import { Loading, ErrorNote, Toast } from '../components/ui.jsx'
+import BodyWeightSheet from '../components/BodyWeightSheet.jsx'
+import { useToast } from '../lib/useToast.js'
 import {
   fetchSessionsInRange,
   fetchPlannedCounts,
@@ -50,6 +52,8 @@ export default function Home() {
   const [sessions, setSessions] = useState(null)
   const [counts, setCounts] = useState({})
   const [err, setErr] = useState(null)
+  const [bwOpen, setBwOpen] = useState(false)
+  const { message, show } = useToast()
 
   useEffect(() => {
     let live = true
@@ -105,13 +109,24 @@ export default function Home() {
   if (sessions === null) return <Loading label="Loading" />
 
   return (
+    <>
     <div className="screen-scroll">
       <div className="home-head">
         <div className="brand">Ledger</div>
-        <button type="button" className="streak-chip" onClick={() => navigate('/calendar')}>
-          <Flame size={14} weight="bold" style={{ color: 'var(--color-accent)' }} />
-          <span className="tnum">{streak > 0 ? `${streak} day streak` : 'Start a streak'}</span>
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <button
+            type="button"
+            className="icon-btn"
+            aria-label="Log body weight"
+            onClick={() => setBwOpen(true)}
+          >
+            <Scales size={17} weight="bold" />
+          </button>
+          <button type="button" className="streak-chip" onClick={() => navigate('/calendar')}>
+            <Flame size={14} weight="bold" style={{ color: 'var(--color-accent)' }} />
+            <span className="tnum">{streak > 0 ? `${streak} day streak` : 'Start a streak'}</span>
+          </button>
+        </div>
       </div>
 
       <div className="home-weeklabel">
@@ -237,5 +252,13 @@ export default function Home() {
         </div>
       )}
     </div>
+
+    <BodyWeightSheet
+      open={bwOpen}
+      onClose={() => setBwOpen(false)}
+      onSaved={(entry) => show(`Logged ${Math.round(Number(entry.weight) * 10) / 10} lbs`)}
+    />
+    <Toast message={message} />
+    </>
   )
 }

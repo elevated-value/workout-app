@@ -2,12 +2,15 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { MagnifyingGlass, CaretRight, ChartLineUp } from '@phosphor-icons/react'
 import { Loading, ErrorNote } from '../components/ui.jsx'
+import BodyWeightPanel from '../components/BodyWeightPanel.jsx'
 import { fetchAllLoggedSets, buildSessions, prValue, prLabel } from '../lib/progress.js'
 
 // Progress landing (§3.6) — the exercises Jeff has actually logged, each with an
 // at-a-glance PR for its metric type / format. Same search + chip-filter pattern
-// as the Library. (Body Weight lives here too per §3.6 — added with §3.8.)
+// as the Library. A section toggle at the top switches to Body Weight (§3.8) —
+// same screen, not a navigation.
 export default function Progress() {
+  const [section, setSection] = useState('exercises')
   const [rows, setRows] = useState(null)
   const [err, setErr] = useState(null)
   const [q, setQ] = useState('')
@@ -73,7 +76,24 @@ export default function Progress() {
           <span className="lib-title">Progress</span>
         </div>
 
-        {rows && rows.length > 0 && (
+        <div className="seg2">
+          <button
+            type="button"
+            className={section === 'exercises' ? 'on' : undefined}
+            onClick={() => setSection('exercises')}
+          >
+            Exercises
+          </button>
+          <button
+            type="button"
+            className={section === 'bodyweight' ? 'on' : undefined}
+            onClick={() => setSection('bodyweight')}
+          >
+            Body Weight
+          </button>
+        </div>
+
+        {section === 'exercises' && rows && rows.length > 0 && (
           <>
             <div className="search-wrap">
               <MagnifyingGlass size={15} weight="bold" className="search-icon" />
@@ -117,9 +137,11 @@ export default function Progress() {
         )}
       </div>
 
-      {err && <ErrorNote>{err}</ErrorNote>}
-
-      {rows === null && !err ? (
+      {section === 'bodyweight' ? (
+        <BodyWeightPanel />
+      ) : err ? (
+        <ErrorNote>{err}</ErrorNote>
+      ) : rows === null ? (
         <Loading label="Loading progress" />
       ) : (
         <div className="screen-scroll">
