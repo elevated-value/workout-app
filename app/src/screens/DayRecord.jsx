@@ -14,22 +14,10 @@ import {
 import { TopBar, Loading, ErrorNote, Toast } from '../components/ui.jsx'
 import { useToast } from '../lib/useToast.js'
 import { fetchDay, dayStatus } from '../lib/sessions.js'
-import { todayISO, longDate, mmss, metricValueLabel } from '../lib/format.js'
+import { todayISO, longDate, mmss, metricValueLabel, plannedTargetLabel, formatTag } from '../lib/format.js'
 
 // Day Record (§3.7) — every date resolves to one of: logged (or in progress),
 // scheduled, missed, or an empty open day. Never a dead end.
-
-function plannedDetail(pe) {
-  const mt = pe.exercise?.metric_type ?? 'weight'
-  if (pe.format === 'amrap') {
-    const cap = pe.time_cap_seconds ? `${mmss(pe.time_cap_seconds)} cap` : 'AMRAP'
-    return pe.target_reps ? `${cap} · ${pe.target_reps}/round` : cap
-  }
-  const sr = `${pe.target_sets ?? '–'}×${pe.target_reps ?? '–'}`
-  if (mt === 'time') return pe.target_duration ? `${sr} · ${mmss(pe.target_duration)}` : sr
-  const primary = metricValueLabel(mt, { weight: pe.target_weight, duration: pe.target_duration })
-  return primary === '—' ? sr : `${sr} · ${primary}`
-}
 
 function loggedDetail(sets, metricType) {
   if (!sets.length) return 'Not logged'
@@ -39,11 +27,6 @@ function loggedDetail(sets, metricType) {
   const vals = sets.map((s) => metricValueLabel(metricType, { weight: s.weight, duration: s.duration }))
   const uniq = [...new Set(vals)]
   return uniq.length === 1 ? `${sets.length}× ${uniq[0]}` : vals.join(' / ')
-}
-
-function setsTag(pe) {
-  if (pe.format === 'amrap') return 'AMRAP'
-  return pe.target_sets ? `${pe.target_sets}×` : ''
 }
 
 function ExerciseRow({ name, equip, tag, detail, dim, icon }) {
@@ -218,8 +201,8 @@ export default function DayRecord() {
                     key={p.id}
                     name={p.exercise?.name ?? 'Exercise'}
                     equip={p.exercise?.equipment?.[0]}
-                    tag={setsTag(p)}
-                    detail={isLoggedView ? loggedDetail(sets, mt) : plannedDetail(p)}
+                    tag={formatTag(p)}
+                    detail={isLoggedView ? loggedDetail(sets, mt) : plannedTargetLabel(p)}
                     dim={isLoggedView && !done}
                     icon={
                       isLoggedView ? (

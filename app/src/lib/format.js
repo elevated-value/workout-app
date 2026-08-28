@@ -103,3 +103,22 @@ export function metricValueLabel(metricType, { weight, duration }) {
   }
   return weight != null ? `${weight} lb` : '—'
 }
+
+// A short "3×" / "AMRAP" tag for a planned exercise row.
+export function formatTag(pe) {
+  if (pe.format === 'amrap') return 'AMRAP'
+  return pe.target_sets ? `${pe.target_sets}×` : ''
+}
+
+// One-line target summary for a planned exercise (needs pe.exercise.metric_type).
+export function plannedTargetLabel(pe) {
+  const mt = pe.exercise?.metric_type ?? 'weight'
+  if (pe.format === 'amrap') {
+    const cap = pe.time_cap_seconds ? `${mmss(pe.time_cap_seconds)} cap` : 'AMRAP'
+    return pe.target_reps ? `${cap} · ${pe.target_reps}/round` : cap
+  }
+  const sr = `${pe.target_sets ?? '–'}×${pe.target_reps ?? '–'}`
+  if (mt === 'time') return pe.target_duration ? `${sr} · ${mmss(pe.target_duration)}` : sr
+  const primary = metricValueLabel(mt, { weight: pe.target_weight, duration: pe.target_duration })
+  return primary === '—' ? sr : `${sr} · ${primary}`
+}

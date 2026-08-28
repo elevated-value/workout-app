@@ -56,6 +56,90 @@ export function computeStreak(sessions, today = todayISO()) {
   return streak
 }
 
+// ── mutations — building / editing a day (§3.2, §3.4) ───────────────────────
+
+export async function ensureSession(dateISO) {
+  const { data: existing, error: e1 } = await supabase
+    .from('workout_sessions')
+    .select('*')
+    .eq('date', dateISO)
+    .maybeSingle()
+  if (e1) throw e1
+  if (existing) return existing
+  const { data, error } = await supabase
+    .from('workout_sessions')
+    .insert({ date: dateISO, status: 'planned' })
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+export async function updateSession(id, patch) {
+  const { error } = await supabase.from('workout_sessions').update(patch).eq('id', id)
+  if (error) throw error
+}
+
+// Drop an empty planned session so it stops colouring the calendar.
+export async function deleteSessionIfEmpty(id) {
+  const [{ count: plannedCount }, { count: loggedCount }] = await Promise.all([
+    supabase.from('planned_exercises').select('id', { count: 'exact', head: true }).eq('workout_session_id', id),
+    supabase.from('logged_sets').select('id', { count: 'exact', head: true }).eq('workout_session_id', id),
+  ])
+  if ((plannedCount ?? 0) === 0 && (loggedCount ?? 0) === 0) {
+    const { error } = await supabase.from('workout_sessions').delete().eq('id', id)
+    if (error) throw error
+    return true
+  }
+  return false
+}
+
+const PLANNED_SELECT = '*, exercise:exercises(name, equipment, metric_type)'
+
+// Add a library exercise to a day, pre-filling every target from its defaults
+// (§3.4). AMRAP never gets target_sets.
+export async function addPlannedExercise(sessionId, exercise, position) {
+  const isAmrap = exercise.format === 'amrap'
+  const row = {
+    workout_session_id: sessionId,
+    exercise_id: exercise.id,
+    position,
+    format: exercise.format,
+    target_sets: isAmrap ? null : exercise.default_sets ?? 3,
+    target_reps: exercise.default_reps ?? (isAmrap ? 5 : 8),
+    target_weight: exercise.metric_type === 'time' ? null : exercise.default_weight ?? null,
+    target_duration: exercise.metric_type === 'time' ? exercise.default_duration ?? null : null,
+    time_cap_seconds: isAmrap ? exercise.default_time_cap_seconds ?? 600 : null,
+    rest_seconds: exercise.default_rest_seconds ?? null,
+  }
+  const { data, error } = await supabase
+    .from('planned_exercises')
+    .insert(row)
+    .select(PLANNED_SELECT)
+    .single()
+  if (error) throw error
+  return data
+}
+
+export async function updatePlannedExercise(id, patch) {
+  const { error } = await supabase.from('planned_exercises').update(patch).eq('id', id)
+  if (error) throw error
+}
+
+export async function removePlannedExercise(id) {
+  const { error } = await supabase.from('planned_exercises').delete().eq('id', id)
+  if (error) throw error
+}
+
+// Swap the position values of two rows — backs the Move Up / Move Down controls
+// (§3.4), which are used instead of drag-and-drop.
+export async function swapPlannedPositions(a, b) {
+  await Promise.all([
+    updatePlannedExercise(a.id, { position: b.position }),
+    updatePlannedExercise(b.id, { position: a.position }),
+  ])
+}
+
 export async function fetchDay(dateISO) {
   const { data: session, error } = await supabase
     .from('workout_sessions')
