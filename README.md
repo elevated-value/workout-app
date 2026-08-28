@@ -6,6 +6,9 @@ A mobile-first React PWA for building, logging, and reviewing workouts, backed b
 Supabase (Postgres + Auth) and hosted on Vercel — all on free tiers. Single user,
 password-gated.
 
+The Vite app lives in [`app/`](app); the repo root holds planning docs, the
+designed screens, and the database SQL.
+
 - **Spec / source of truth:** [`workout-app-instructions.md`](workout-app-instructions.md) (behaviour), [`BUILD-BRIEF.md`](BUILD-BRIEF.md) (handoff map)
 - **Design system:** Nocturne — [`screens/_ds/nocturne-*/readme.md`](screens/_ds)
 - **Stack:** React 18 + Vite, `@supabase/supabase-js`, Recharts, `vite-plugin-pwa`
@@ -49,41 +52,47 @@ In the [Supabase SQL editor](https://supabase.com/dashboard/project/cwfyqssxebnu
 ### 3. Local dev
 
 ```bash
+cd app
 cp .env.example .env      # already filled with the project URL + anon key
 npm install
 npm run dev               # http://localhost:5173
 ```
 
-The anon key in `.env.example` is safe to commit/ship — RLS restricts every table
-to the authenticated user. Never add the `service_role` key.
+The anon key in `app/.env.example` is safe to commit/ship — RLS restricts every
+table to the authenticated user. Never add the `service_role` key.
 
 ### 4. Deploy (Vercel)
 
-- Import the repo, framework preset **Vite**, root directory `.` (repo root).
+- Import the repo, framework preset **Vite**, **root directory `app`**.
 - Environment variables: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
-  (values from `.env.example`).
-- `vercel.json` already handles SPA rewrites.
+  (values from `app/.env.example`).
+- `app/vercel.json` already handles SPA rewrites.
 - After deploy, open the URL on Android → browser menu → **Add to Home screen**.
 
 ## Project layout
 
 ```
-src/
-  main.jsx, App.jsx        app entry + routes
-  state/AuthProvider.jsx   Supabase session context
-  lib/                     supabase client, date/format helpers, hooks
-  components/               AppShell (bottom nav), shared UI kit
-  screens/                  one file per screen
-  styles/                   nocturne.css (vendored tokens) + app.css (patterns)
-supabase/                   schema.sql, seed.sql
-scripts/gen-icons.mjs      regenerates public/ PWA icons
+app/                       the Vite app (Vercel root directory)
+  index.html, vite.config.js, vercel.json
+  src/
+    main.jsx, App.jsx      app entry + routes
+    state/AuthProvider.jsx Supabase session context
+    lib/                   supabase client, date/format helpers, hooks
+    components/            AppShell (bottom nav), shared UI kit
+    screens/              one file per screen
+    styles/               nocturne.css (vendored tokens) + app.css (patterns)
+  scripts/gen-icons.mjs   regenerates public/ PWA icons
+supabase/                  schema.sql, seed.sql — run by hand in the dashboard
+screens/, design-prompts-pending/, *.md   planning + design handoff
 ```
 
 ## Scripts
 
+Run from `app/`:
+
 | Command | Does |
 | --- | --- |
 | `npm run dev` | Vite dev server |
-| `npm run build` | Production build to `dist/` |
+| `npm run build` | Production build to `app/dist/` |
 | `npm run preview` | Serve the built `dist/` |
 | `node scripts/gen-icons.mjs` | Regenerate PWA icons |
