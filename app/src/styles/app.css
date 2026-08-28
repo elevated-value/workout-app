@@ -1107,6 +1107,63 @@ body { overflow: hidden; overscroll-behavior-y: none; -webkit-tap-highlight-colo
   border: 1px solid var(--line);
 }
 
+/* ── progress detail ──────────────────────────────────────── */
+.prog-headline {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+}
+.prog-headline > span:first-child {
+  font-family: var(--font-heading);
+  font-size: 40px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--color-text);
+}
+.prog-headline > span:last-child {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-4);
+}
+
+.prog-chart {
+  margin-top: 20px;
+  padding: 12px 8px 10px;
+  border-radius: 10px;
+  background: var(--row);
+  border: 1px solid var(--line);
+}
+.prog-caption {
+  font-size: 10.5px;
+  color: var(--text-4);
+  line-height: 1.5;
+  margin: 8px 6px 2px;
+}
+
+.prog-table { display: flex; flex-direction: column; }
+.prog-row {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr 0.7fr 0.9fr;
+  gap: 0 8px;
+  align-items: center;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 12.5px;
+  color: var(--color-text);
+}
+.prog-row > span:not(:first-child) { text-align: right; }
+.prog-head {
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-4);
+  padding-bottom: 7px;
+}
+
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes sheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 @keyframes popIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }

@@ -33,7 +33,7 @@ The full token set, component classes, and usage rules are documented in `screen
 | Day Record | ✅ Designed | `screens/Day Record.dc.html` |
 | Workout Logging (Straight Sets + AMRAP + Edit) | ✅ Designed | `screens/Workout Logging.dc.html`, `screens/Workout App.dc.html` |
 | Manage Library | ✅ Built from prompt (no Claude Design export) | `design-prompts-pending/design-prompt-manage-library.md` + instructions.md §3.1 |
-| Progress tab | ⏳ Not yet designed | `design-prompts-pending/design-prompt-progress-tab.md` + instructions.md §3.6 |
+| Progress tab | ✅ Built from spec (no Claude Design export) | `design-prompts-pending/design-prompt-progress-tab.md` + instructions.md §3.6 |
 | Body Weight tracking | ⏳ Not yet designed | `design-prompts-pending/design-prompt-body-weight.md` + instructions.md §3.8 |
 | Programs (Phase 2) | ⏳ Not yet designed | `design-prompts-pending/design-prompt-programs-tab.md` + instructions.md §3.9 |
 
