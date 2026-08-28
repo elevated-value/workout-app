@@ -4,6 +4,10 @@
    Nocturne look. */
 
 :root {
+  /* Nocturne is dark-only. Without this, a light-mode OS renders form controls
+     (and any text that inherits buttontext / fieldtext) in black. */
+  color-scheme: dark;
+
   --color-bg: #161826;
   --color-surface: #232532;
   --color-text: #e9e9ed;
@@ -66,6 +70,10 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; }
+
+/* Form controls do not inherit colour by default. Force it, so a bare
+   button / input never falls back to the UA buttontext / fieldtext colour. */
+button, input, select, textarea { color: inherit; }
 
 body {
   background: var(--color-bg);
