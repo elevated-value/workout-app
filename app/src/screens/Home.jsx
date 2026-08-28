@@ -1,6 +1,16 @@
-import { useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { Flame, Barbell, Play, Plus, CaretRight, Check, Scales } from '@phosphor-icons/react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import {
+  Flame,
+  Barbell,
+  Play,
+  Plus,
+  CaretLeft,
+  CaretRight,
+  Check,
+  NotePencil,
+  Scales,
+} from '@phosphor-icons/react'
 import { Loading, ErrorNote, Toast } from '../components/ui.jsx'
 import BodyWeightSheet from '../components/BodyWeightSheet.jsx'
 import { useToast } from '../lib/useToast.js'
@@ -21,8 +31,9 @@ import {
   relativeDayLabel,
 } from '../lib/format.js'
 
-// Home — the landing view (§3.7): weekly strip, streak indicator, and a featured
-// card for today. Every day in the strip taps through to its Day Record.
+// Home — the landing view (§3.7). The weekly strip swipes / chevrons between
+// weeks (§3.7 rev. 24); the featured card follows whichever day is selected,
+// defaulting to today. A strip day still taps through to its Day Record.
 // "Copy previous week" (§3.3) lands with the Copy/Duplicate build step.
 
 const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
@@ -43,11 +54,21 @@ function stripIcon(state) {
   return <span style={{ width: 6, height: 1, background: 'var(--line-strong)' }} />
 }
 
+const ISO_RE = /^\d{4}-\d{2}-\d{2}$/
+
 export default function Home() {
   const navigate = useNavigate()
   const today = todayISO()
-  const start = useMemo(() => weekStart(today), [today])
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  // Selected day lives in the URL (?d=) so it survives a round-trip to a Day
+  // Record; no param means "today".
+  const paramD = searchParams.get('d')
+  const selectedDate = ISO_RE.test(paramD ?? '') ? paramD : today
+
+  const start = useMemo(() => weekStart(selectedDate), [selectedDate])
   const dates = useMemo(() => weekDates(start), [start])
+  const onThisWeek = start === weekStart(today)
 
   const [sessions, setSessions] = useState(null)
   const [counts, setCounts] = useState({})
@@ -55,11 +76,16 @@ export default function Home() {
   const [bwOpen, setBwOpen] = useState(false)
   const { message, show } = useToast()
 
+  const touchRef = useRef(null)
+  const swipedRef = useRef(false)
+
   useEffect(() => {
     let live = true
     ;(async () => {
       try {
-        const rows = await fetchSessionsInRange(addDays(today, -120), dates[6])
+        const rangeStart = dates[0] < addDays(today, -120) ? dates[0] : addDays(today, -120)
+        const rangeEnd = dates[6] > today ? dates[6] : today
+        const rows = await fetchSessionsInRange(rangeStart, rangeEnd)
         const cnt = await fetchPlannedCounts(rows.map((s) => s.id))
         if (!live) return
         setSessions(rows)
@@ -81,19 +107,48 @@ export default function Home() {
 
   const streak = useMemo(() => computeStreak(sessions ?? [], today), [sessions, today])
 
+  const shiftWeek = (dir) =>
+    setSearchParams({ d: addDays(selectedDate, dir * 7) }, { replace: true })
+
+  const selectDay = (iso) => setSearchParams({ d: iso }, { replace: true })
+
+  const openDay = (iso) => {
+    if (swipedRef.current) return // a swipe that ended on a cell shouldn't also open it
+    selectDay(iso)
+    navigate(`/day/${iso}`)
+  }
+
+  const onTouchStart = (e) => {
+    touchRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }
+  }
+  const onTouchEnd = (e) => {
+    const s = touchRef.current
+    touchRef.current = null
+    if (!s) return
+    const dx = e.changedTouches[0].clientX - s.x
+    const dy = e.changedTouches[0].clientY - s.y
+    if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.4) {
+      swipedRef.current = true
+      setTimeout(() => {
+        swipedRef.current = false
+      }, 350)
+      shiftWeek(dx < 0 ? 1 : -1)
+    }
+  }
+
   const week = dates.map((iso) => {
     const s = byDate[iso]
     const state = iso === today ? 'today' : dayStatus(s, iso, today)
     const d = fromISODate(iso)
-    return { iso, s, state, dow: DOW[d.getDay()], num: d.getDate() }
+    return { iso, s, state, selected: iso === selectedDate, dow: DOW[d.getDay()], num: d.getDate() }
   })
 
   const weekSessions = week.filter((d) => d.s)
   const doneCount = weekSessions.filter((d) => d.s.status === 'completed').length
 
-  const todaySession = byDate[today]
-  const todayCount = todaySession ? counts[todaySession.id] ?? 0 : 0
-  const todayDone = todaySession?.status === 'completed'
+  const selSession = byDate[selectedDate]
+  const selCount = selSession ? counts[selSession.id] ?? 0 : 0
+  const selStatus = dayStatus(selSession, selectedDate, today)
 
   const upcoming = (sessions ?? [])
     .filter((s) => s.date > today && s.status === 'planned')
@@ -108,157 +163,192 @@ export default function Home() {
   }
   if (sessions === null) return <Loading label="Loading" />
 
+  const badge =
+    selStatus === 'logged'
+      ? 'Logged'
+      : selStatus === 'missed'
+        ? 'Missed'
+        : selectedDate === today
+          ? 'Today'
+          : 'Scheduled'
+
   return (
     <>
-    <div className="screen-scroll">
-      <div className="home-head">
-        <div className="brand">Ledger</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <button
-            type="button"
-            className="icon-btn"
-            aria-label="Log body weight"
-            onClick={() => setBwOpen(true)}
-          >
-            <Scales size={17} weight="bold" />
-          </button>
-          <button type="button" className="streak-chip" onClick={() => navigate('/calendar')}>
-            <Flame size={14} weight="bold" style={{ color: 'var(--color-accent)' }} />
-            <span className="tnum">{streak > 0 ? `${streak} day streak` : 'Start a streak'}</span>
-          </button>
-        </div>
-      </div>
-
-      <div className="home-weeklabel">
-        <span className="kicker">
-          {shortDate(dates[0])} – {shortDate(dates[6])}
-        </span>
-        <span className="tnum" style={{ fontSize: 10, color: 'var(--text-5)' }}>
-          {doneCount}/{weekSessions.length} done
-        </span>
-      </div>
-
-      <div className="week-strip">
-        {week.map((d) => {
-          const st = STRIP_STYLE[d.state]
-          return (
-            <Link
-              key={d.iso}
-              to={`/day/${d.iso}`}
-              className="week-cell"
-              style={{ background: st.bg, borderColor: st.border }}
-            >
-              <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: st.dow }}>
-                {d.dow}
-              </span>
-              <span className="tnum" style={{ fontSize: 14, fontWeight: 600, lineHeight: 1, color: st.num }}>
-                {d.num}
-              </span>
-              {stripIcon(d.state)}
-            </Link>
-          )
-        })}
-      </div>
-
-      <div className="home-section">
-        <div className="kicker" style={{ marginBottom: 10 }}>{longDate(today)}</div>
-
-        {todaySession && todayCount > 0 ? (
-          <div
-            className="today-card"
-            role="link"
-            tabIndex={0}
-            onClick={() => navigate(`/day/${today}`)}
-            onKeyDown={(e) => e.key === 'Enter' && navigate(`/day/${today}`)}
-          >
-            <div className="today-tags">
-              <span className="badge scheduled">{todayDone ? 'Logged' : 'Today'}</span>
-              {todaySession.name && <span className="badge type">{todaySession.name}</span>}
-            </div>
-            <div className="today-name">{todaySession.name ?? 'Workout'}</div>
-            <div className="today-sub tnum">
-              {todayCount} exercise{todayCount === 1 ? '' : 's'}
-              {todayDone ? ' · completed' : ''}
-            </div>
-            <div className="today-foot">
-              {todayDone ? (
-                <span className="today-cta-quiet">
-                  View day record <CaretRight size={13} weight="bold" />
-                </span>
-              ) : (
-                <button
-                  type="button"
-                  className="cta"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    navigate(`/day/${today}/log`)
-                  }}
-                  style={{ minHeight: 48 }}
-                >
-                  <Play size={14} weight="bold" />
-                  Start workout
-                </button>
-              )}
-            </div>
-          </div>
-        ) : (
-          <div className="empty-card">
-            <Barbell size={22} weight="bold" style={{ color: 'var(--text-5)' }} />
-            <h3>Nothing scheduled</h3>
-            <p>Build one on the fly — pick exercises as you go and it saves to today.</p>
+      <div className="screen-scroll">
+        <div className="home-head">
+          <div className="brand">Ledger</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <button
               type="button"
-              className="cta"
-              style={{ marginTop: 16 }}
-              onClick={() => navigate(`/day/${today}/build`)}
+              className="icon-btn"
+              aria-label="Log body weight"
+              onClick={() => setBwOpen(true)}
             >
-              <Plus size={14} weight="bold" />
-              Build workout
+              <Scales size={17} weight="bold" />
             </button>
+            <button type="button" className="streak-chip" onClick={() => navigate('/calendar')}>
+              <Flame size={14} weight="bold" style={{ color: 'var(--color-accent)' }} />
+              <span className="tnum">{streak > 0 ? `${streak} day streak` : 'Start a streak'}</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="home-weeklabel">
+          <button type="button" className="wk-nav" aria-label="Previous week" onClick={() => shiftWeek(-1)}>
+            <CaretLeft size={13} weight="bold" />
+          </button>
+          <span className="kicker" style={{ flex: 1 }}>
+            {shortDate(dates[0])} – {shortDate(dates[6])}
+          </span>
+          {!onThisWeek && (
+            <button type="button" className="wk-today" onClick={() => setSearchParams({}, { replace: true })}>
+              Today
+            </button>
+          )}
+          <span className="tnum" style={{ fontSize: 10, color: 'var(--text-5)' }}>
+            {doneCount}/{weekSessions.length} done
+          </span>
+          <button type="button" className="wk-nav" aria-label="Next week" onClick={() => shiftWeek(1)}>
+            <CaretRight size={13} weight="bold" />
+          </button>
+        </div>
+
+        <div className="week-strip" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+          {week.map((d) => {
+            const st = STRIP_STYLE[d.state]
+            return (
+              <button
+                type="button"
+                key={d.iso}
+                className={`week-cell${d.selected ? ' selected' : ''}`}
+                style={{ background: st.bg, borderColor: st.border }}
+                onClick={() => openDay(d.iso)}
+              >
+                <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: st.dow }}>
+                  {d.dow}
+                </span>
+                <span className="tnum" style={{ fontSize: 14, fontWeight: 600, lineHeight: 1, color: st.num }}>
+                  {d.num}
+                </span>
+                {stripIcon(d.state)}
+              </button>
+            )
+          })}
+        </div>
+
+        <div className="home-section">
+          <div className="kicker" style={{ marginBottom: 10 }}>
+            {longDate(selectedDate)}
+            {selectedDate === today ? ' · Today' : ''}
+          </div>
+
+          {selSession && selCount > 0 ? (
+            <div
+              className="today-card"
+              role="link"
+              tabIndex={0}
+              onClick={() => navigate(`/day/${selectedDate}`)}
+              onKeyDown={(e) => e.key === 'Enter' && navigate(`/day/${selectedDate}`)}
+            >
+              <div className="today-tags">
+                <span className={`badge ${selStatus === 'logged' ? 'logged' : selStatus === 'missed' ? 'missed' : 'scheduled'}`}>
+                  {badge}
+                </span>
+                {selSession.name && <span className="badge type">{selSession.name}</span>}
+              </div>
+              <div className="today-name">{selSession.name ?? 'Workout'}</div>
+              <div className="today-sub tnum">
+                {selCount} exercise{selCount === 1 ? '' : 's'}
+                {selStatus === 'logged' ? ' · completed' : ''}
+              </div>
+              <div className="today-foot">
+                {selStatus === 'logged' ? (
+                  <span className="today-cta-quiet">
+                    View day record <CaretRight size={13} weight="bold" />
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    className="cta"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      navigate(`/day/${selectedDate}/log`)
+                    }}
+                    style={{ minHeight: 48 }}
+                  >
+                    {selStatus === 'missed' ? (
+                      <>
+                        <NotePencil size={14} weight="bold" />
+                        Log workout
+                      </>
+                    ) : (
+                      <>
+                        <Play size={14} weight="bold" />
+                        Start workout
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="empty-card">
+              <Barbell size={22} weight="bold" style={{ color: 'var(--text-5)' }} />
+              <h3>Nothing scheduled</h3>
+              <p>Build one on the fly — pick exercises as you go and it saves to this day.</p>
+              <button
+                type="button"
+                className="cta"
+                style={{ marginTop: 16 }}
+                onClick={() => navigate(`/day/${selectedDate}/build`)}
+              >
+                <Plus size={14} weight="bold" />
+                Build workout
+              </button>
+            </div>
+          )}
+        </div>
+
+        {upcoming.length > 0 && (
+          <div className="home-section">
+            <div className="kicker" style={{ marginBottom: 10 }}>Up next</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+              {upcoming.map((s) => (
+                <Link key={s.id} to={`/day/${s.date}`} className="row">
+                  <span
+                    className="tnum"
+                    style={{
+                      width: 40,
+                      flex: 'none',
+                      fontSize: 10.5,
+                      fontWeight: 600,
+                      letterSpacing: '0.06em',
+                      textTransform: 'uppercase',
+                      color: 'var(--text-4)',
+                    }}
+                  >
+                    {relativeDayLabel(s.date)}
+                  </span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div className="row-title">{s.name ?? 'Workout'}</div>
+                    <div className="row-sub tnum">
+                      {(counts[s.id] ?? 0)} exercise{(counts[s.id] ?? 0) === 1 ? '' : 's'}
+                    </div>
+                  </div>
+                  <CaretRight size={14} weight="bold" style={{ color: 'var(--text-5)', flex: 'none' }} />
+                </Link>
+              ))}
+            </div>
           </div>
         )}
       </div>
 
-      {upcoming.length > 0 && (
-        <div className="home-section">
-          <div className="kicker" style={{ marginBottom: 10 }}>Up next</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-            {upcoming.map((s) => (
-              <Link key={s.id} to={`/day/${s.date}`} className="row">
-                <span
-                  className="tnum"
-                  style={{
-                    width: 40,
-                    flex: 'none',
-                    fontSize: 10.5,
-                    fontWeight: 600,
-                    letterSpacing: '0.06em',
-                    textTransform: 'uppercase',
-                    color: 'var(--text-4)',
-                  }}
-                >
-                  {relativeDayLabel(s.date)}
-                </span>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div className="row-title">{s.name ?? 'Workout'}</div>
-                  <div className="row-sub tnum">
-                    {(counts[s.id] ?? 0)} exercise{(counts[s.id] ?? 0) === 1 ? '' : 's'}
-                  </div>
-                </div>
-                <CaretRight size={14} weight="bold" style={{ color: 'var(--text-5)', flex: 'none' }} />
-              </Link>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-
-    <BodyWeightSheet
-      open={bwOpen}
-      onClose={() => setBwOpen(false)}
-      onSaved={(entry) => show(`Logged ${Math.round(Number(entry.weight) * 10) / 10} lbs`)}
-    />
-    <Toast message={message} />
+      <BodyWeightSheet
+        open={bwOpen}
+        onClose={() => setBwOpen(false)}
+        onSaved={(entry) => show(`Logged ${Math.round(Number(entry.weight) * 10) / 10} lbs`)}
+      />
+      <Toast message={message} />
     </>
   )
 }

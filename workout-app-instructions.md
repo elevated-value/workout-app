@@ -108,7 +108,8 @@ Since there's no recurring program in v1, copying is the primary way Jeff avoids
 - **Chart window:** shows the most recent sessions by default (e.g. last 10–15 data points) for legibility on a phone screen, with a way to expand to full history if Jeff wants to see further back.
 
 ### 3.7 Home Screen & Day Records
-- **Home screen** is the app's landing view. It shows: a weekly calendar strip (Mon–Sun, current week), a current streak indicator, and a featured card for today — either today's defined workout or a prompt to build one if nothing's been defined yet.
+- **Home screen** is the app's landing view. It shows: a weekly calendar strip (Mon–Sun), a current streak indicator, and a featured card for the selected day — either that day's defined workout or a prompt to build one if nothing's been defined yet.
+- **Swipeable weekly strip (rev. 24):** the strip is not locked to the current week. Swiping left/right on the strip itself — or small left/right chevron controls alongside it, since a swipe affordance isn't always obvious — moves it to the previous/next Mon–Sun week, updating the date range and each day's state (Logged/Defined/Missed/Empty) accordingly. The featured card below stays keyed to whichever day is **selected** in the strip: it defaults to today when the app first opens, and follows selection as Jeff taps different days within a swiped-to week (a tap still opens that day's Day Record, exactly as before — this is only about which week the strip shows). A quick way back to the current week is available when the strip has been moved off it.
 - **Day Record:** every calendar date resolves to a record when tapped, regardless of past/present/future:
   - **Logged day** — a workout was actually completed (or is in progress) that date → tapping shows that session's summary/log.
   - **Defined, not yet logged** (today or future) → tapping shows a preview of that day's planned exercises with a "Start" action.
