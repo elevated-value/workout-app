@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/nocturne-96953c80-2b48-40ef-8d8a-0d5f1011432c/styles.css">
+<script src="_ds/nocturne-96953c80-2b48-40ef-8d8a-0d5f1011432c/_ds_bundle.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css">
+<style>
+body{margin:0;background:var(--color-bg,#161826);font-family:var(--font-body,Inter,system-ui,sans-serif);color:var(--color-text,#e9e9ed);display:flex;align-items:center;justify-content:center;min-height:100vh}
+*{box-sizing:border-box}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(5px)}60%{transform:translateX(-4px)}80%{transform:translateX(3px)}}
+input::placeholder{color:#595d6c}
+input:focus{outline:none;border-color:#9184d9 !important;box-shadow:0 0 0 3px rgba(145,132,217,0.14)}
+</style>
+</helmet>
+<x-import component-from-global-scope="AndroidDevice" from="./android-frame.jsx" dark="{{ true }}" hint-size="428px,908px">
+<div style="height:100%;position:relative;background:#0a0a0c;overflow:hidden;display:flex;flex-direction:column">
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 28px">
+<div style="display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:52px">
+<div style="width:28px;height:3px;background:#9184d9"></div>
+<span style="font-size:19px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase">Ledger</span>
+</div>
+<div style="width:100%;display:flex;flex-direction:column;gap:12px;animation:{{ shakeAnim }}">
+<input type="email" placeholder="Email" value="{{ email }}" onChange="{{ setEmail }}" style="width:100%;padding:15px 14px;border-radius:8px;background:#18181b;border:1px solid {{ fieldBorder }};color:#e9e9ed;font-family:inherit;font-size:14px;min-height:50px">
+<input type="password" placeholder="Password" value="{{ password }}" onChange="{{ setPassword }}" onKeyDown="{{ onKeyDown }}" style="width:100%;padding:15px 14px;border-radius:8px;background:#18181b;border:1px solid {{ fieldBorder }};color:#e9e9ed;font-family:inherit;font-size:14px;min-height:50px">
+</div>
+<div onClick="{{ signIn }}" style="width:100%;margin-top:18px;padding:16px;border-radius:8px;text-align:center;font-size:13px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;background:{{ ctaBg }};color:{{ ctaColor }};min-height:52px;display:flex;align-items:center;justify-content:center;transition:background .15s" style-hover="background:#a89ae0">{{ ctaLabel }}</div>
+<sc-if value="{{ error }}" hint-placeholder-val="{{ false }}">
+<div style="width:100%;margin-top:14px;padding:11px 13px;border-radius:7px;background:rgba(224,160,140,0.08);border:1px solid #4a3b3e;display:flex;align-items:center;gap:8px;animation:fadeIn .18s ease">
+<i class="ph-bold ph-warning-circle" style="font-size:14px;color:#e0a08c;flex:none"></i>
+<span style="font-size:12px;color:#e0a08c">{{ error }}</span>
+</div>
+</sc-if>
+<sc-if value="{{ success }}" hint-placeholder-val="{{ false }}">
+<div style="width:100%;margin-top:14px;padding:11px 13px;border-radius:7px;background:rgba(145,132,217,0.08);border:1px solid #3a3554;display:flex;align-items:center;gap:8px;animation:fadeIn .18s ease">
+<i class="ph-bold ph-check-circle" style="font-size:14px;color:#9184d9;flex:none"></i>
+<span style="font-size:12px;color:#b5abfc">Signed in.</span>
+</div>
+</sc-if>
+</div>
+<div style="flex:none;padding:0 0 18px;text-align:center">
+<span style="font-size:10.5px;color:#4a4d5c">Single-account access</span>
+</div>
+</div>
+</x-import>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { email: '', password: '', error: null, success: false, shaking: false };
+  EMAIL = 'jeff@ledger.app';
+  PASS = 'ledger2026';
+
+  signIn = () => {
+    const { email, password } = this.state;
+    if (email.trim() === this.EMAIL && password === this.PASS) {
+      this.setState({ error: null, success: true });
+    } else {
+      this.setState({ error: 'Incorrect email or password.', success: false, shaking: true });
+      setTimeout(() => this.setState({ shaking: false }), 420);
+    }
+  };
+
+  renderVals() {
+    const s = this.state;
+    return {
+      email: s.email,
+      password: s.password,
+      setEmail: (ev) => this.setState({ email: ev.target.value, error: null, success: false }),
+      setPassword: (ev) => this.setState({ password: ev.target.value, error: null, success: false }),
+      onKeyDown: (ev) => { if (ev.key === 'Enter') this.signIn(); },
+      signIn: this.signIn,
+      error: s.error,
+      success: s.success,
+      shakeAnim: s.shaking ? 'shake .4s ease' : 'none',
+      fieldBorder: s.error ? '#6b4a49' : '#262835',
+      ctaBg: '#9184d9',
+      ctaColor: '#0c0d14',
+      ctaLabel: 'Sign In'
+    };
+  }
+}
+</script>
+</body>
+</html>

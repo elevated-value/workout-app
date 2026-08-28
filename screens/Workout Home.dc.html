@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/nocturne-96953c80-2b48-40ef-8d8a-0d5f1011432c/styles.css">
+<script src="_ds/nocturne-96953c80-2b48-40ef-8d8a-0d5f1011432c/_ds_bundle.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css">
+<style>
+body{margin:0;background:var(--color-bg,#161826);font-family:var(--font-body,Inter,system-ui,sans-serif);color:var(--color-text,#e9e9ed);display:flex;align-items:center;justify-content:center;min-height:100vh}
+a{color:#b5abfc}a:hover{color:#d2cefd}
+*{box-sizing:border-box}
+@keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes popIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+</style>
+</helmet>
+<x-import component-from-global-scope="AndroidDevice" from="./android-frame.jsx" dark="{{ true }}" hint-size="428px,908px">
+<div style="height:100%;position:relative;background:#161826;display:flex;flex-direction:column;overflow:hidden">
+
+<div style="flex:1;overflow-y:auto;padding:14px 16px 20px">
+
+<div style="display:flex;align-items:center;justify-content:space-between;height:36px">
+<div style="display:flex;align-items:center;gap:8px">
+<div style="width:16px;height:2px;background:#9184d9"></div>
+<span style="font-size:13px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase">Ledger</span>
+</div>
+<div onClick="{{ openMonth }}" style="display:flex;align-items:center;gap:6px;padding:6px 9px;margin-right:-9px;border-radius:6px;cursor:pointer" style-hover="background:#232532">
+<i class="ph-bold ph-flame" style="font-size:14px;color:#9184d9"></i>
+<span style="font-size:12px;color:#b2b6ca;font-variant-numeric:tabular-nums">{{ streakLabel }}</span>
+</div>
+</div>
+
+<div style="display:flex;align-items:baseline;justify-content:space-between;margin:22px 0 10px">
+<span style="font-size:10px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#75798c">{{ weekLabel }}</span>
+<span style="font-size:10px;letter-spacing:0.06em;color:#595d6c;font-variant-numeric:tabular-nums">{{ weekDoneLabel }}</span>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px">
+<sc-for list="{{ week }}" as="d" hint-placeholder-count="7">
+<div onClick="{{ d.open }}" style="display:flex;flex-direction:column;align-items:center;gap:7px;padding:9px 0 10px;min-height:66px;border-radius:8px;cursor:pointer;background:{{ d.bg }};border:1px solid {{ d.border }}" style-hover="border-color:#595d6c">
+<span style="font-size:9px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:{{ d.dowColor }}">{{ d.dow }}</span>
+<span style="font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1;color:{{ d.numColor }}">{{ d.num }}</span>
+<i class="{{ d.icon }}" style="font-size:11px;color:{{ d.iconColor }}"></i>
+</div>
+</sc-for>
+</div>
+
+<div style="display:flex;justify-content:flex-start;margin-top:11px">
+<div onClick="{{ askCopy }}" style="display:flex;align-items:center;gap:7px;padding:8px 11px;border:1px solid #3f424d;border-radius:6px;cursor:pointer;min-height:38px" style-hover="border-color:#796cbf">
+<i class="ph-bold ph-copy" style="font-size:13px;color:#9397ab"></i>
+<span style="font-size:11.5px;color:#b2b6ca">Copy previous week</span>
+</div>
+</div>
+
+<div style="margin-top:26px">
+<div style="font-size:10px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#75798c;margin-bottom:10px">{{ todayKicker }}</div>
+<sc-if value="{{ hasToday }}" hint-placeholder-val="{{ true }}">
+<div style="border-radius:10px;border:1px solid #5d5294;background:linear-gradient(160deg,#2b2741 0%,#1f2130 62%,#1c1e2b 100%);padding:20px 18px 18px;box-shadow:0 10px 28px rgba(10,11,18,0.5)">
+<div style="display:flex;gap:7px;margin-bottom:16px">
+<sc-for list="{{ todayTags }}" as="t" hint-placeholder-count="2">
+<span style="font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;padding:4px 9px;border-radius:99px;background:#423a6a;color:#d2cefd">{{ t }}</span>
+</sc-for>
+</div>
+<div style="font-size:33px;font-weight:600;letter-spacing:-0.03em;line-height:1.04;text-transform:uppercase;text-wrap:pretty">{{ todayName }}</div>
+<div style="font-size:12.5px;color:#9397ab;margin-top:9px;font-variant-numeric:tabular-nums">{{ todaySub }}</div>
+<div style="display:flex;align-items:center;gap:14px;margin-top:18px;padding-top:15px;border-top:1px solid #3f424d">
+<div onClick="{{ start }}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;min-height:52px;border-radius:8px;border:1px solid #9184d9;background:rgba(145,132,217,0.10);cursor:pointer" style-hover="background:#423a6a">
+<i class="ph-bold ph-play" style="font-size:14px;color:#d2cefd"></i>
+<span style="font-size:12.5px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#d2cefd">Start workout</span>
+</div>
+<div style="text-align:right;flex:none">
+<div style="font-size:17px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1">{{ todayCount }}</div>
+<div style="font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:#75798c;margin-top:4px">Exercises</div>
+</div>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{ emptyToday }}" hint-placeholder-val="{{ false }}">
+<div style="border-radius:10px;border:1px dashed #595d6c;background:#1c1e2b;padding:24px 18px 20px">
+<i class="ph-bold ph-barbell" style="font-size:22px;color:#595d6c"></i>
+<div style="font-size:27px;font-weight:600;letter-spacing:-0.03em;line-height:1.08;text-transform:uppercase;margin-top:14px">Nothing scheduled</div>
+<div style="font-size:12.5px;color:#9397ab;margin-top:9px;line-height:1.5">Build one on the fly. Pick exercises as you go and it saves to today.</div>
+<div onClick="{{ start }}" style="display:flex;align-items:center;justify-content:center;gap:8px;min-height:52px;margin-top:18px;border-radius:8px;border:1px solid #9184d9;background:rgba(145,132,217,0.10);cursor:pointer" style-hover="background:#423a6a">
+<i class="ph-bold ph-plus" style="font-size:14px;color:#d2cefd"></i>
+<span style="font-size:12.5px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#d2cefd">Build workout</span>
+</div>
+</div>
+</sc-if>
+</div>
+
+<div style="margin-top:26px">
+<div style="font-size:10px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#75798c;margin-bottom:10px">Up next</div>
+<div style="display:flex;flex-direction:column;gap:7px">
+<sc-for list="{{ upcoming }}" as="u" hint-placeholder-count="2">
+<div onClick="{{ u.open }}" style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:8px;background:#1d1f2b;border:1px solid #262835;cursor:pointer" style-hover="border-color:#595d6c">
+<span style="font-size:10.5px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#75798c;width:42px;flex:none;font-variant-numeric:tabular-nums">{{ u.when }}</span>
+<div style="flex:1;min-width:0">
+<div style="font-size:13.5px;font-weight:600;letter-spacing:-0.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ u.name }}</div>
+<div style="font-size:11px;color:#75798c;margin-top:4px;font-variant-numeric:tabular-nums">{{ u.sub }}</div>
+</div>
+<i class="ph-bold ph-caret-right" style="font-size:14px;color:#595d6c;flex:none"></i>
+</div>
+</sc-for>
+</div>
+</div>
+
+</div>
+
+<div style="flex:none;display:flex;border-top:1px solid #2b2d3a;background:#191b28;padding:6px 4px 8px">
+<sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+<div onClick="{{ t.pick }}" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0;cursor:pointer;min-height:48px;justify-content:center">
+<i class="{{ t.icon }}" style="font-size:19px;color:{{ t.color }}"></i>
+<span style="font-size:9.5px;letter-spacing:0.06em;color:{{ t.color }}">{{ t.label }}</span>
+</div>
+</sc-for>
+</div>
+
+<sc-if value="{{ otherTab }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;left:0;right:0;top:0;bottom:62px;background:#161826;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:0 32px">
+<i class="{{ otherTab.icon }}" style="font-size:30px;color:#3f424d"></i>
+<div style="font-size:14px;font-weight:600;color:#b2b6ca">{{ otherTab.label }}</div>
+<div style="font-size:11.5px;color:#75798c;text-align:center;line-height:1.5">{{ otherTab.note }}</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ month }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;background:#161826;display:flex;flex-direction:column;animation:fadeIn .16s ease">
+<div style="flex:none;padding:14px 16px 0">
+<div style="display:flex;align-items:center;gap:12px;height:36px">
+<i onClick="{{ closeMonth }}" class="ph-bold ph-x" style="font-size:19px;color:#b2b6ca;cursor:pointer"></i>
+<span style="font-size:14px;font-weight:600;letter-spacing:-0.01em;flex:1">{{ month.title }}</span>
+<i class="ph-bold ph-caret-left" style="font-size:16px;color:#75798c;cursor:pointer"></i>
+<i class="ph-bold ph-caret-right" style="font-size:16px;color:#75798c;cursor:pointer"></i>
+</div>
+<div style="display:flex;align-items:baseline;gap:20px;padding:20px 0 22px">
+<div>
+<div style="font-size:30px;font-weight:600;letter-spacing:-0.03em;line-height:1;font-variant-numeric:tabular-nums;color:#9184d9">{{ month.streak }}</div>
+<div style="font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:#75798c;margin-top:6px">Day streak</div>
+</div>
+<div>
+<div style="font-size:30px;font-weight:600;letter-spacing:-0.03em;line-height:1;font-variant-numeric:tabular-nums">{{ month.logged }}</div>
+<div style="font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:#75798c;margin-top:6px">Logged this month</div>
+</div>
+</div>
+</div>
+<div style="flex:1;overflow-y:auto;padding:0 16px 20px">
+<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:8px">
+<sc-for list="{{ month.dows }}" as="w" hint-placeholder-count="7">
+<div style="text-align:center;font-size:9px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#595d6c">{{ w }}</div>
+</sc-for>
+</div>
+<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px">
+<sc-for list="{{ month.cells }}" as="c" hint-placeholder-count="35">
+<div onClick="{{ c.open }}" style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:7px;font-size:12.5px;font-weight:600;font-variant-numeric:tabular-nums;cursor:{{ c.cursor }};background:{{ c.bg }};border:1px solid {{ c.border }};color:{{ c.color }}">{{ c.n }}</div>
+</sc-for>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:14px;margin-top:22px">
+<sc-for list="{{ month.legend }}" as="l" hint-placeholder-count="3">
+<div style="display:flex;align-items:center;gap:7px">
+<div style="width:12px;height:12px;border-radius:4px;background:{{ l.bg }};border:1px solid {{ l.border }}"></div>
+<span style="font-size:10.5px;color:#9397ab">{{ l.label }}</span>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ day }}" hint-placeholder-val="{{ false }}">
+<div onClick="{{ closeDay }}" style="position:absolute;inset:0;background:rgba(10,11,18,0.66);animation:fadeIn .18s ease"></div>
+</sc-if>
+<sc-if value="{{ day }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;left:0;right:0;bottom:0;background:#1c1e2b;border-top:1px solid #595d6c;border-radius:16px 16px 0 0;box-shadow:0 -16px 40px rgba(0,0,0,0.65);animation:sheetUp .24s cubic-bezier(.2,.8,.2,1);max-height:88%;display:flex;flex-direction:column">
+<div onClick="{{ closeDay }}" style="display:flex;justify-content:center;padding:9px 0 3px;cursor:pointer;flex:none">
+<div style="width:38px;height:4px;border-radius:2px;background:#595d6c"></div>
+</div>
+<div style="flex:1;overflow-y:auto;padding:10px 18px 4px">
+<div style="font-size:10px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#75798c">{{ day.date }}</div>
+<div style="font-size:24px;font-weight:600;letter-spacing:-0.025em;line-height:1.1;text-transform:uppercase;margin-top:9px;text-wrap:pretty">{{ day.name }}</div>
+<div style="font-size:12.5px;color:#9397ab;margin-top:8px;line-height:1.5;font-variant-numeric:tabular-nums">{{ day.sub }}</div>
+<sc-if value="{{ day.hasRows }}" hint-placeholder-val="{{ true }}">
+<div style="margin-top:18px;display:flex;flex-direction:column">
+<sc-for list="{{ day.rows }}" as="r" hint-placeholder-count="4">
+<div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid #262835">
+<i class="{{ r.icon }}" style="font-size:14px;color:{{ r.iconColor }};flex:none"></i>
+<span style="flex:1;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.name }}</span>
+<span style="font-size:11.5px;color:#75798c;font-variant-numeric:tabular-nums;flex:none">{{ r.detail }}</span>
+</div>
+</sc-for>
+</div>
+</sc-if>
+</div>
+<div style="flex:none;padding:14px 18px 16px">
+<div onClick="{{ day.action }}" style="display:flex;align-items:center;justify-content:center;gap:8px;min-height:52px;border-radius:8px;border:1px solid {{ day.ctaBorder }};background:{{ day.ctaBg }};cursor:pointer" style-hover="background:#423a6a">
+<i class="{{ day.ctaIcon }}" style="font-size:14px;color:{{ day.ctaColor }}"></i>
+<span style="font-size:12.5px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:{{ day.ctaColor }}">{{ day.cta }}</span>
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ confirm }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;background:rgba(10,11,18,0.72);display:flex;align-items:center;justify-content:center;padding:26px;animation:fadeIn .16s ease">
+<div style="width:100%;background:#232532;border:1px solid #595d6c;border-radius:12px;padding:20px 18px 16px;box-shadow:0 18px 44px rgba(0,0,0,0.6);animation:popIn .18s cubic-bezier(.2,.8,.2,1)">
+<div style="display:flex;align-items:center;gap:9px">
+<i class="ph-bold ph-warning" style="font-size:16px;color:#e39a5c"></i>
+<span style="font-size:15px;font-weight:600;letter-spacing:-0.01em">Replace next week?</span>
+</div>
+<div style="font-size:12.5px;color:#b2b6ca;line-height:1.55;margin-top:12px">{{ confirmBody }}</div>
+<div style="font-size:12px;color:#e0a08c;line-height:1.5;margin-top:10px">Logged data will be lost.</div>
+<div style="display:flex;gap:9px;margin-top:20px">
+<div onClick="{{ cancelCopy }}" style="flex:1;display:flex;align-items:center;justify-content:center;min-height:46px;border-radius:7px;border:1px solid #3f424d;cursor:pointer;font-size:12px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#b2b6ca" style-hover="border-color:#75798c">Cancel</div>
+<div onClick="{{ doCopy }}" style="flex:1;display:flex;align-items:center;justify-content:center;min-height:46px;border-radius:7px;border:1px solid #9184d9;background:rgba(145,132,217,0.10);cursor:pointer;font-size:12px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#d2cefd" style-hover="background:#423a6a">Replace</div>
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;left:16px;right:16px;bottom:76px;padding:13px 15px;border-radius:8px;background:#292b31;border:1px solid #595d6c;box-shadow:0 10px 26px rgba(0,0,0,0.5);display:flex;align-items:center;gap:9px;animation:fadeIn .18s ease">
+<i class="ph-bold ph-check-circle" style="font-size:15px;color:#9184d9"></i>
+<span style="font-size:12px;color:#e9e9ed">{{ toast }}</span>
+</div>
+</sc-if>
+
+</div>
+</x-import>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:520,&quot;height&quot;:960},&quot;todayScheduled&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;States&quot;}}">
+class Component extends DCLogic {
+  DOWS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+  // Week of Mon Aug 24 – Sun Aug 30, 2026. Today is Wed Aug 26.
+  static week() {
+    return [
+      { n: 24, dow: 'Mon', st: 'done', name: 'Lower Day B', sub: '52 min · 6 exercises · 14 sets', rows: [
+        ['Back Squat', '5×5 · 225 lb'], ['Romanian Deadlift', '3×8 · 185 lb'], ['Kettlebell Swing', '3×15 · 53 lb'], ['Wall Walk', '3×4'] ] },
+      { n: 25, dow: 'Tue', st: 'done', name: 'Conditioning', sub: '28 min · 4 exercises · 9 sets', rows: [
+        ['Treadmill Intervals', '8×400 m'], ['Jump Rope', '3×2 min'], ['Medicine Ball Slam', '3×12 · 20 lb'] ] },
+      { n: 26, dow: 'Wed', st: 'today', name: 'Upper Day A', sub: '45 min · Upper Body', rows: [
+        ['Barbell Bench Press', '4 sets'], ['Pull-Up', '3 sets'], ['Dumbbell Shoulder Press', '3 sets'], ['TRX Bicep Curl', '3 sets'], ['Kettlebell Halo', '2 sets'], ['Jump Rope', '3 min'] ] },
+      { n: 27, dow: 'Thu', st: 'sched', name: 'Lower Day A', sub: '50 min · Lower Body', rows: [
+        ['Front Squat', '4 sets'], ['Bulgarian Split Squat', '3 sets'], ['Kettlebell Swing', '3 sets'] ] },
+      { n: 28, dow: 'Fri', st: 'sched', name: 'Conditioning', sub: '30 min · Cardio', rows: [
+        ['Treadmill Intervals', '6 rounds'], ['Jump Rope', '3 sets'] ] },
+      { n: 29, dow: 'Sat', st: 'sched', name: 'Upper Day B', sub: '45 min · Upper Body', rows: [
+        ['Overhead Press', '4 sets'], ['Barbell Row', '4 sets'], ['TRX Row', '3 sets'] ] },
+      { n: 30, dow: 'Sun', st: 'empty', name: 'Rest day', sub: 'Nothing scheduled.', rows: [] }
+    ];
+  }
+
+  state = { tab: 'today', month: false, dayN: null, confirm: false, toast: null, copied: false };
+
+  openMonth = () => this.setState({ month: true });
+  closeMonth = () => this.setState({ month: false });
+  openDay = (n) => this.setState({ dayN: n });
+  closeDay = () => this.setState({ dayN: null });
+  askCopy = () => this.setState({ confirm: true });
+  cancelCopy = () => this.setState({ confirm: false });
+  doCopy = () => {
+    this.setState({ confirm: false, copied: true, toast: 'Aug 24–30 copied into Aug 31 – Sep 6.' });
+    clearTimeout(this.t);
+    this.t = setTimeout(() => this.setState({ toast: null }), 3200);
+  };
+  componentWillUnmount() { clearTimeout(this.t); }
+  pickTab = (t) => this.setState({ tab: t, month: false, dayN: null });
+
+  stateStyle(st) {
+    if (st === 'done') return { bg: '#2b2741', border: '#5d5294', num: '#e9e9ed', dow: '#b5abfc', icon: 'ph-bold ph-check', iconColor: '#9184d9' };
+    if (st === 'today') return { bg: 'rgba(145,132,217,0.10)', border: '#9184d9', num: '#e9e9ed', dow: '#d2cefd', icon: 'ph-bold ph-dot-outline', iconColor: '#9184d9' };
+    if (st === 'sched') return { bg: '#1d1f2b', border: '#3f424d', num: '#b2b6ca', dow: '#75798c', icon: 'ph-bold ph-circle-dashed', iconColor: '#75798c' };
+    return { bg: 'transparent', border: '#232532', num: '#595d6c', dow: '#4a4d5c', icon: 'ph-bold ph-minus', iconColor: '#3f424d' };
+  }
+
+  renderVals() {
+    const st = this.state;
+    const scheduled = this.props.todayScheduled ?? true;
+    let week = Component.week();
+    if (!scheduled) week = week.map(d => d.st === 'today' ? { ...d, st: 'today', name: 'Rest day', sub: 'Nothing scheduled.', rows: [], none: true } : d);
+
+    const today = week.find(d => d.st === 'today');
+    const doneCount = week.filter(d => d.st === 'done').length;
+    const emptyToday = !!today.none;
+
+    const dayData = st.dayN == null ? null : week.find(d => d.n === st.dayN);
+    let day = null;
+    if (dayData) {
+      const logged = dayData.st === 'done';
+      const none = dayData.st === 'empty' || dayData.none;
+      day = {
+        date: dayData.dow + ', August ' + dayData.n + (dayData.st === 'today' ? ' · Today' : ''),
+        name: none ? 'Nothing scheduled' : dayData.name,
+        sub: none ? 'Build a workout for this date and it saves to the log.' : dayData.sub,
+        hasRows: dayData.rows.length > 0,
+        rows: dayData.rows.map(r => ({
+          name: r[0], detail: r[1],
+          icon: logged ? 'ph-bold ph-check-circle' : 'ph-bold ph-circle-dashed',
+          iconColor: logged ? '#9184d9' : '#595d6c'
+        })),
+        cta: logged ? 'Repeat this workout' : (none ? 'Build workout' : 'Start workout'),
+        ctaIcon: logged ? 'ph-bold ph-arrow-counter-clockwise' : (none ? 'ph-bold ph-plus' : 'ph-bold ph-play'),
+        ctaBorder: '#9184d9', ctaBg: 'rgba(145,132,217,0.10)', ctaColor: '#d2cefd',
+        action: this.closeDay
+      };
+    }
+
+    // August 2026: the 1st is a Saturday, 31 days.
+    let month = null;
+    if (st.month) {
+      const cells = [];
+      for (let i = 0; i < 5; i++) cells.push({ n: '', bg: 'transparent', border: 'transparent', color: 'transparent', cursor: 'default', open: null });
+      for (let n = 1; n <= 31; n++) {
+        const inWeek = week.find(d => d.n === n);
+        let s = 'empty';
+        if (inWeek) s = inWeek.st;
+        else if (n <= 23) s = [3, 4, 6, 8, 10, 11, 13, 15, 17, 18, 20, 21, 22].indexOf(n) >= 0 ? 'done' : 'empty';
+        else s = 'sched';
+        const sty = this.stateStyle(s);
+        cells.push({ n, bg: sty.bg, border: sty.border, color: sty.num, cursor: 'pointer', open: inWeek ? () => this.setState({ month: false, dayN: n }) : null });
+      }
+      month = {
+        title: 'August 2026', dows: this.DOWS,
+        streak: 4, logged: 15 + doneCount, cells,
+        legend: [
+          { label: 'Logged', bg: '#2b2741', border: '#5d5294' },
+          { label: 'Scheduled', bg: '#1d1f2b', border: '#3f424d' },
+          { label: 'Nothing scheduled', bg: 'transparent', border: '#232532' }
+        ]
+      };
+    }
+
+    const tabDefs = [
+      { key: 'today', label: 'Today', icon: 'ph-bold ph-lightning', note: '' },
+      { key: 'library', label: 'Library', icon: 'ph-bold ph-barbell', note: 'Exercise library, filterable by equipment and muscle group. Not designed in this pass.' },
+      { key: 'progress', label: 'Progress', icon: 'ph-bold ph-chart-line-up', note: 'Per-exercise charts and PRs. Not designed in this pass.' },
+      { key: 'programs', label: 'Programs', icon: 'ph-bold ph-cards', note: 'Program and template builder. Not designed in this pass.' }
+    ];
+
+    return {
+      streakLabel: '4 day streak',
+      weekLabel: 'Aug 24 – 30',
+      weekDoneLabel: doneCount + '/' + week.filter(d => d.st !== 'empty').length + ' done',
+      week: week.map(d => {
+        const sty = this.stateStyle(d.st);
+        return { dow: d.dow, num: d.n, bg: sty.bg, border: sty.border, numColor: sty.num, dowColor: sty.dow, icon: sty.icon, iconColor: sty.iconColor, open: () => this.openDay(d.n) };
+      }),
+      openMonth: this.openMonth, closeMonth: this.closeMonth, month,
+      askCopy: this.askCopy, cancelCopy: this.cancelCopy, doCopy: this.doCopy,
+      confirm: st.confirm,
+      confirmBody: 'This will replace your scheduled and logged workouts for Aug 31 – Sep 6 with a copy of Aug 24 – 30.',
+      toast: st.toast,
+      todayKicker: 'Wednesday, August 26',
+      hasToday: !emptyToday, emptyToday,
+      todayName: today.name,
+      todaySub: today.sub,
+      todayTags: ['Today', 'Week 3'],
+      todayCount: today.rows.length,
+      start: () => this.setState({ toast: emptyToday ? 'Opens the on-the-fly builder.' : 'Opens the Upper Day A logging screen.' }, () => {
+        clearTimeout(this.t); this.t = setTimeout(() => this.setState({ toast: null }), 2600);
+      }),
+      upcoming: week.filter(d => d.st === 'sched').slice(0, 2).map(d => ({
+        when: d.dow, name: d.name, sub: d.sub, open: () => this.openDay(d.n)
+      })),
+      day, closeDay: this.closeDay,
+      tabs: tabDefs.map(t => ({ label: t.label, icon: t.icon, color: st.tab === t.key ? '#9184d9' : '#75798c', pick: () => this.pickTab(t.key) })),
+      otherTab: st.tab === 'today' ? null : tabDefs.find(t => t.key === st.tab)
+    };
+  }
+}
+</script>
+</body>
+</html>

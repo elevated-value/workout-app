@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/nocturne-96953c80-2b48-40ef-8d8a-0d5f1011432c/styles.css">
+<script src="_ds/nocturne-96953c80-2b48-40ef-8d8a-0d5f1011432c/_ds_bundle.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css">
+<style>
+body{margin:0;background:var(--color-bg,#161826);font-family:var(--font-body,Inter,system-ui,sans-serif);color:var(--color-text,#e9e9ed);display:flex;align-items:center;justify-content:center;min-height:100vh}
+a{color:#b5abfc}a:hover{color:#d2cefd}
+*{box-sizing:border-box}
+@keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes popIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+</style>
+</helmet>
+<x-import component-from-global-scope="AndroidDevice" from="./android-frame.jsx" dark="{{ true }}" hint-size="428px,908px">
+<div style="height:100%;position:relative;background:#161826;display:flex;flex-direction:column;overflow:hidden">
+
+<div style="flex:none;padding:12px 16px 0">
+<div style="display:flex;align-items:center;gap:12px;height:38px">
+<i class="ph-bold ph-arrow-left" style="font-size:19px;color:#b2b6ca;cursor:pointer"></i>
+<div style="flex:1;min-width:0">
+<div style="font-size:15px;font-weight:600;letter-spacing:-0.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ dateLabel }}</div>
+</div>
+<i class="ph-bold ph-dots-three-outline" style="font-size:18px;color:#75798c;cursor:pointer"></i>
+</div>
+</div>
+
+<div style="flex:1;overflow-y:auto;padding:16px 16px 22px">
+
+<div style="display:flex;align-items:center;gap:8px">
+<span style="font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;padding:4px 9px;border-radius:99px;background:{{ badgeBg }};color:{{ badgeColor }};border:1px solid {{ badgeBorder }}">{{ badge }}</span>
+<sc-if value="{{ typeTag }}" hint-placeholder-val="{{ true }}">
+<span style="font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;padding:4px 9px;border-radius:99px;background:#2b2d3a;color:#b2b6ca">{{ typeTag }}</span>
+</sc-if>
+</div>
+
+<div style="font-size:31px;font-weight:600;letter-spacing:-0.03em;line-height:1.05;text-transform:uppercase;margin-top:15px;text-wrap:pretty">{{ title }}</div>
+<div style="font-size:12.5px;color:#9397ab;margin-top:10px;line-height:1.55;max-width:290px">{{ subtitle }}</div>
+
+<sc-if value="{{ stats }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;gap:24px;margin-top:20px;padding:16px 0;border-top:1px solid #262835;border-bottom:1px solid #262835">
+<sc-for list="{{ stats }}" as="s" hint-placeholder-count="3">
+<div>
+<div style="font-size:21px;font-weight:600;letter-spacing:-0.02em;line-height:1;font-variant-numeric:tabular-nums;color:{{ s.color }}">{{ s.value }}</div>
+<div style="font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:#75798c;margin-top:6px">{{ s.label }}</div>
+</div>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ hasList }}" hint-placeholder-val="{{ true }}">
+<div style="margin-top:22px">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+<span style="font-size:10px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#75798c">{{ listLabel }}</span>
+<sc-if value="{{ canCopy }}" hint-placeholder-val="{{ true }}">
+<div onClick="{{ openPicker }}" style="display:flex;align-items:center;gap:6px;padding:7px 10px;margin-right:-4px;border:1px solid #3f424d;border-radius:6px;cursor:pointer;min-height:36px" style-hover="border-color:#796cbf">
+<i class="ph-bold ph-copy" style="font-size:12px;color:#9397ab"></i>
+<span style="font-size:11px;color:#b2b6ca">Copy to…</span>
+</div>
+</sc-if>
+</div>
+<div style="display:flex;flex-direction:column;gap:7px">
+<sc-for list="{{ items }}" as="it" hint-placeholder-count="4">
+<div style="display:flex;gap:12px;align-items:center;padding:11px;border-radius:8px;background:{{ it.bg }};border:1px solid {{ it.border }}">
+<div style="width:42px;height:42px;border-radius:6px;flex:none;background:repeating-linear-gradient(135deg,#2b2d3a 0 5px,#1e2029 5px 10px);opacity:{{ it.thumbOpacity }}"></div>
+<div style="flex:1;min-width:0">
+<div style="display:flex;align-items:baseline;gap:6px">
+<span style="font-size:12.5px;font-weight:700;color:{{ it.setsColor }};font-variant-numeric:tabular-nums;flex:none">{{ it.setsLabel }}</span>
+<span style="font-size:14px;font-weight:600;letter-spacing:-0.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:{{ it.nameColor }}">{{ it.name }}</span>
+</div>
+<div style="display:flex;align-items:center;gap:7px;margin-top:6px">
+<span style="font-size:10px;padding:2px 7px;border-radius:99px;background:#2b2d3a;color:#9397ab;flex:none">{{ it.equip }}</span>
+<span style="font-size:11px;color:{{ it.detailColor }};font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ it.detail }}</span>
+</div>
+</div>
+<i class="{{ it.icon }}" style="font-size:16px;flex:none;color:{{ it.iconColor }}"></i>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ emptyArt }}" hint-placeholder-val="{{ false }}">
+<div style="margin-top:24px;border:1px dashed #595d6c;border-radius:10px;background:#1c1e2b;padding:26px 18px 22px">
+<i class="ph-bold ph-barbell" style="font-size:22px;color:#595d6c"></i>
+<div style="font-size:13px;color:#b2b6ca;margin-top:14px;line-height:1.6">Pick exercises as you go. Everything you log saves to this date, not today.</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ note }}" hint-placeholder-val="{{ false }}">
+<div style="margin-top:20px;font-size:11.5px;color:#75798c;line-height:1.6">{{ note }}</div>
+</sc-if>
+
+<div style="height:6px"></div>
+</div>
+
+<div style="flex:none;padding:12px 16px 16px;border-top:1px solid #262835;background:#191b28">
+<div onClick="{{ primaryTap }}" style="display:flex;align-items:center;justify-content:center;gap:9px;min-height:54px;border-radius:8px;cursor:pointer;border:1px solid {{ ctaBorder }};background:{{ ctaBg }}" style-hover="background:#423a6a">
+<i class="{{ ctaIcon }}" style="font-size:15px;color:{{ ctaColor }}"></i>
+<span style="font-size:12.5px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:{{ ctaColor }}">{{ cta }}</span>
+</div>
+<sc-if value="{{ secondary }}" hint-placeholder-val="{{ false }}">
+<div onClick="{{ secondaryTap }}" style="display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;margin-top:9px;border-radius:8px;cursor:pointer" style-hover="background:#232532">
+<span style="font-size:11.5px;color:#9397ab">{{ secondary }}</span>
+</div>
+</sc-if>
+</div>
+
+<sc-if value="{{ picker }}" hint-placeholder-val="{{ false }}">
+<div onClick="{{ closePicker }}" style="position:absolute;inset:0;background:rgba(10,11,18,0.66);animation:fadeIn .18s ease"></div>
+</sc-if>
+<sc-if value="{{ picker }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;left:0;right:0;bottom:0;background:#1c1e2b;border-top:1px solid #595d6c;border-radius:16px 16px 0 0;box-shadow:0 -16px 40px rgba(0,0,0,0.65);animation:sheetUp .24s cubic-bezier(.2,.8,.2,1);display:flex;flex-direction:column;max-height:90%">
+<div onClick="{{ closePicker }}" style="display:flex;justify-content:center;padding:9px 0 3px;cursor:pointer;flex:none">
+<div style="width:38px;height:4px;border-radius:2px;background:#595d6c"></div>
+</div>
+<div style="flex:1;overflow-y:auto;padding:8px 16px 0">
+<div style="font-size:10px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#75798c">Copy {{ title }} to</div>
+<div style="display:flex;align-items:center;gap:12px;margin:16px 0 18px">
+<i class="ph-bold ph-caret-left" style="font-size:16px;color:#75798c;cursor:pointer"></i>
+<span style="font-size:15px;font-weight:600;letter-spacing:-0.01em;flex:1;text-align:center">{{ picker.month }}</span>
+<i class="ph-bold ph-caret-right" style="font-size:16px;color:#75798c;cursor:pointer"></i>
+</div>
+<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:8px">
+<sc-for list="{{ picker.dows }}" as="w" hint-placeholder-count="7">
+<div style="text-align:center;font-size:9px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#595d6c">{{ w }}</div>
+</sc-for>
+</div>
+<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px">
+<sc-for list="{{ picker.cells }}" as="c" hint-placeholder-count="35">
+<div onClick="{{ c.pick }}" style="aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border-radius:7px;cursor:{{ c.cursor }};background:{{ c.bg }};border:1px solid {{ c.border }}">
+<span style="font-size:12.5px;font-weight:600;font-variant-numeric:tabular-nums;color:{{ c.color }}">{{ c.n }}</span>
+<div style="width:3px;height:3px;border-radius:99px;background:{{ c.dot }}"></div>
+</div>
+</sc-for>
+</div>
+<div style="display:flex;gap:16px;margin-top:18px">
+<div style="display:flex;align-items:center;gap:7px">
+<div style="width:3px;height:3px;border-radius:99px;background:#9184d9"></div>
+<span style="font-size:10.5px;color:#9397ab">Has content</span>
+</div>
+<div style="display:flex;align-items:center;gap:7px">
+<div style="width:3px;height:3px;border-radius:99px;background:#3f424d"></div>
+<span style="font-size:10.5px;color:#9397ab">Empty</span>
+</div>
+</div>
+<div style="font-size:11px;color:#75798c;line-height:1.6;margin-top:16px">Exercises, order and target sets/reps copy over. Weights do not.</div>
+<div style="height:14px"></div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ confirm }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;background:rgba(10,11,18,0.72);display:flex;align-items:center;justify-content:center;padding:26px;animation:fadeIn .16s ease">
+<div style="width:100%;background:#232532;border:1px solid #595d6c;border-radius:12px;padding:20px 18px 16px;box-shadow:0 18px 44px rgba(0,0,0,0.6);animation:popIn .18s cubic-bezier(.2,.8,.2,1)">
+<div style="display:flex;align-items:center;gap:9px">
+<i class="ph-bold ph-warning" style="font-size:16px;color:#e39a5c"></i>
+<span style="font-size:15px;font-weight:600;letter-spacing:-0.01em">Replace that day?</span>
+</div>
+<div style="font-size:12.5px;color:#b2b6ca;line-height:1.55;margin-top:12px">{{ confirmBody }}</div>
+<div style="font-size:12px;color:#e0a08c;line-height:1.5;margin-top:10px">Logged data will be lost.</div>
+<div style="display:flex;gap:9px;margin-top:20px">
+<div onClick="{{ cancelCopy }}" style="flex:1;display:flex;align-items:center;justify-content:center;min-height:46px;border-radius:7px;border:1px solid #3f424d;cursor:pointer;font-size:12px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#b2b6ca" style-hover="border-color:#75798c">Cancel</div>
+<div onClick="{{ doCopy }}" style="flex:1;display:flex;align-items:center;justify-content:center;min-height:46px;border-radius:7px;border:1px solid #9184d9;background:rgba(145,132,217,0.10);cursor:pointer;font-size:12px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#d2cefd" style-hover="background:#423a6a">Replace</div>
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;left:16px;right:16px;bottom:92px;padding:13px 15px;border-radius:8px;background:#292b31;border:1px solid #595d6c;box-shadow:0 10px 26px rgba(0,0,0,0.5);display:flex;align-items:center;gap:9px;animation:fadeIn .18s ease">
+<i class="ph-bold ph-check-circle" style="font-size:15px;color:#9184d9"></i>
+<span style="font-size:12px;color:#e9e9ed">{{ toast }}</span>
+</div>
+</sc-if>
+
+</div>
+</x-import>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:520,&quot;height&quot;:960},&quot;dayState&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;logged&quot;,&quot;scheduled&quot;,&quot;missed&quot;,&quot;empty&quot;],&quot;default&quot;:&quot;logged&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;States&quot;}}">
+class Component extends DCLogic {
+  DOWS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+  PLAN = [
+    { name: 'Barbell Bench Press', equip: 'Barbell', target: '4 × 10,8,6,6', logged: '135 / 145 / 155 / 155 lb', done: true },
+    { name: 'Pull-Up', equip: 'Pull-up bar', target: '3 × 8,8,6', logged: 'BW × 8, 8, 6', done: true },
+    { name: 'Dumbbell Shoulder Press', equip: 'Dumbbell', target: '3 × 12,12,10', logged: '40 / 40 / 45 lb', done: true },
+    { name: 'TRX Bicep Curl', equip: 'TRX', target: '3 × 12', logged: 'BW × 12, 12, 10', done: true },
+    { name: 'Kettlebell Halo', equip: 'Kettlebell', target: '2 × 10', logged: '25 lb × 10, 10', done: true },
+    { name: 'Jump Rope', equip: 'Jump rope', target: '3 min', logged: '', done: false }
+  ];
+
+  state = { picker: false, dest: null, confirm: false, toast: null };
+
+  openPicker = () => this.setState({ picker: true });
+  closePicker = () => this.setState({ picker: false });
+  pickDest = (n, hasContent) => {
+    if (hasContent) this.setState({ picker: false, dest: n, confirm: true });
+    else this.flash('Copied to September ' + n + '.', { picker: false, dest: n });
+  };
+  cancelCopy = () => this.setState({ confirm: false });
+  doCopy = () => this.flash('Copied to September ' + this.state.dest + '. Weights not carried over.', { confirm: false });
+  flash(msg, extra) {
+    this.setState({ ...(extra || {}), toast: msg });
+    clearTimeout(this.t);
+    this.t = setTimeout(() => this.setState({ toast: null }), 3200);
+  }
+  componentWillUnmount() { clearTimeout(this.t); }
+
+  renderVals() {
+    const mode = this.props.dayState ?? 'logged';
+    const st = this.state;
+    const accent = '#9184d9';
+    const ctaOn = { ctaBorder: accent, ctaBg: 'rgba(145,132,217,0.10)', ctaColor: '#d2cefd' };
+    const ctaQuiet = { ctaBorder: '#3f424d', ctaBg: 'transparent', ctaColor: '#b2b6ca' };
+
+    const rowFor = (e, logged) => ({
+      name: e.name, equip: e.equip,
+      setsLabel: /min/.test(e.target) ? '' : e.target.split(' ')[0] + '×',
+      detail: logged ? (e.done ? e.logged : 'Not logged') : e.target,
+      bg: '#1d1f2b', border: '#262835',
+      thumbOpacity: logged && !e.done ? 0.4 : 1,
+      nameColor: logged && !e.done ? '#9397ab' : '#e9e9ed',
+      setsColor: logged && !e.done ? '#595d6c' : accent,
+      detailColor: logged && !e.done ? '#75798c' : '#b2b6ca',
+      icon: logged ? (e.done ? 'ph-bold ph-check-circle' : 'ph-bold ph-minus-circle') : 'ph-bold ph-circle-dashed',
+      iconColor: logged ? (e.done ? accent : '#4a4d5c') : '#595d6c'
+    });
+
+    const modes = {
+      logged: {
+        dateLabel: 'Monday, August 24',
+        badge: 'Logged', badgeBg: '#2b2741', badgeColor: '#d2cefd', badgeBorder: '#5d5294',
+        typeTag: 'Upper body',
+        title: 'Upper Day A',
+        subtitle: 'Completed at 6:42 pm.',
+        stats: [
+          { value: '46:12', label: 'Total time', color: '#e9e9ed' },
+          { value: '31:40', label: 'Active time', color: accent },
+          { value: '5/6', label: 'Exercises', color: '#e9e9ed' }
+        ],
+        hasList: true, listLabel: 'What you did', canCopy: true,
+        items: this.PLAN.map(e => rowFor(e, true)),
+        note: 'Jump rope was skipped.',
+        cta: 'Repeat this workout', ctaIcon: 'ph-bold ph-arrow-counter-clockwise', ...ctaOn,
+        secondary: null, emptyArt: false
+      },
+      scheduled: {
+        dateLabel: 'Thursday, September 3',
+        badge: 'Scheduled', badgeBg: 'rgba(145,132,217,0.10)', badgeColor: '#d2cefd', badgeBorder: accent,
+        typeTag: 'Upper body',
+        title: 'Upper Day A',
+        subtitle: '45 min estimated · 6 exercises · 18 sets',
+        stats: null,
+        hasList: true, listLabel: 'Planned', canCopy: true,
+        items: this.PLAN.map(e => rowFor(e, false)),
+        note: null,
+        cta: 'Start workout', ctaIcon: 'ph-bold ph-play', ...ctaOn,
+        secondary: null, emptyArt: false
+      },
+      missed: {
+        dateLabel: 'Friday, August 21',
+        badge: 'Missed', badgeBg: '#2f2226', badgeColor: '#e0a08c', badgeBorder: '#6b4a49',
+        typeTag: 'Upper body',
+        title: 'Upper Day A',
+        subtitle: 'Scheduled for this date. Nothing was logged.',
+        stats: null,
+        hasList: true, listLabel: 'Was planned', canCopy: false,
+        items: this.PLAN.map(e => ({ ...rowFor(e, false), nameColor: '#b2b6ca', setsColor: '#75798c', thumbOpacity: 0.5 })),
+        note: null,
+        cta: 'Log this workout anyway', ctaIcon: 'ph-bold ph-note-pencil', ...ctaQuiet,
+        secondary: 'Leave it missed', secondaryTap: () => this.flash('Returns to the calendar.'), emptyArt: false
+      },
+      empty: {
+        dateLabel: 'Sunday, August 30',
+        badge: 'Nothing scheduled', badgeBg: '#232532', badgeColor: '#9397ab', badgeBorder: '#3f424d',
+        typeTag: null,
+        title: 'Open day',
+        subtitle: 'No workout planned and nothing logged.',
+        stats: null,
+        hasList: false, listLabel: '', canCopy: false, items: [],
+        note: null,
+        cta: 'Build workout', ctaIcon: 'ph-bold ph-plus', ...ctaOn,
+        secondary: 'Copy a previous workout here', secondaryTap: this.openPicker, emptyArt: true
+      }
+    };
+
+    const m = modes[mode] || modes.logged;
+
+    // September 2026: the 1st is a Tuesday, 30 days.
+    let picker = null;
+    if (st.picker) {
+      const withContent = [1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 14, 15, 16, 17, 18, 19];
+      const cells = [{ n: '', bg: 'transparent', border: 'transparent', color: 'transparent', dot: 'transparent', cursor: 'default', pick: null }];
+      for (let n = 1; n <= 30; n++) {
+        const has = withContent.indexOf(n) >= 0;
+        const sel = st.dest === n;
+        cells.push({
+          n, cursor: 'pointer',
+          bg: sel ? 'rgba(145,132,217,0.14)' : '#1d1f2b',
+          border: sel ? accent : '#262835',
+          color: '#e9e9ed',
+          dot: has ? accent : '#3f424d',
+          pick: () => this.pickDest(n, has)
+        });
+      }
+      picker = { month: 'September 2026', dows: this.DOWS, cells };
+    }
+
+    return {
+      ...m,
+      openPicker: this.openPicker, closePicker: this.closePicker, picker,
+      confirm: st.confirm,
+      confirmBody: 'This will replace your workout for September ' + (st.dest || '') + ' with a copy of ' + m.title + '.',
+      cancelCopy: this.cancelCopy, doCopy: this.doCopy,
+      toast: st.toast,
+      primaryTap: () => this.flash('Opens the logging screen for this date.'),
+      secondaryTap: m.secondaryTap || (() => {})
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css">
+<style>
+body{margin:0;background:#0e0f18;font-family:Inter,system-ui,sans-serif;color:#e9e9ed;display:flex;align-items:center;justify-content:center;min-height:100vh}
+a{color:#9184d9}a:hover{color:#b5abfc}
+*{box-sizing:border-box}
+@keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+</style>
+</helmet>
+<x-import component-from-global-scope="AndroidDevice" from="./android-frame.jsx" dark="{{ true }}" hint-size="428px,908px">
+<div style="height:100%;position:relative;background:#161826;display:flex;flex-direction:column;overflow:hidden;font-family:Inter,system-ui,sans-serif">
+
+<div style="padding:10px 16px 0;flex:none">
+<div style="display:flex;align-items:center;gap:12px;height:40px">
+<i class="ph-bold ph-arrow-left" style="font-size:20px;color:#b2b6ca"></i>
+<div style="flex:1;min-width:0">
+<div style="font-size:15px;font-weight:600;letter-spacing:-0.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ title }}</div>
+</div>
+<i class="ph-bold ph-dots-three-outline" style="font-size:18px;color:#75798c"></i>
+</div>
+<div style="display:flex;align-items:flex-end;gap:22px;padding:10px 0 12px">
+<div>
+<div style="font-size:26px;font-weight:600;letter-spacing:-0.02em;font-variant-numeric:tabular-nums;line-height:1">{{ totalTime }}</div>
+<div style="font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:#75798c;margin-top:5px">Total time</div>
+</div>
+<div>
+<div style="font-size:26px;font-weight:600;letter-spacing:-0.02em;font-variant-numeric:tabular-nums;line-height:1;color:#9184d9">{{ activeTime }}</div>
+<div style="font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:#75798c;margin-top:5px">Active time</div>
+</div>
+<div style="flex:1;text-align:right">
+<div style="font-size:11px;color:#9397ab;font-variant-numeric:tabular-nums">{{ progressLabel }}</div>
+</div>
+</div>
+<div style="height:2px;background:#2b2d3a;border-radius:2px;overflow:hidden">
+<div style="height:100%;background:#9184d9;width:{{ progressPct }};transition:width .3s"></div>
+</div>
+</div>
+
+<div style="flex:1;overflow-y:auto;padding:18px 16px 16px">
+<sc-for list="{{ sections }}" as="sec" hint-placeholder-count="2">
+<div style="margin-bottom:22px">
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+<div style="width:14px;height:1px;background:#9184d9"></div>
+<div style="font-size:10.5px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#b2b6ca">{{ sec.label }}</div>
+</div>
+<div style="display:flex;flex-direction:column;gap:8px">
+<sc-for list="{{ sec.items }}" as="it" hint-placeholder-count="3">
+<div onClick="{{ it.open }}" style="display:flex;gap:12px;align-items:center;padding:11px;border-radius:8px;cursor:pointer;background:{{ it.bg }};border:1px solid {{ it.border }}" style-hover="border-color:#595d6c">
+<div style="width:46px;height:46px;border-radius:6px;flex:none;background:repeating-linear-gradient(135deg,#2b2d3a 0 5px,#1e2029 5px 10px)"></div>
+<div style="flex:1;min-width:0">
+<div style="display:flex;align-items:baseline;gap:6px">
+<span style="font-size:12.5px;font-weight:700;color:#9184d9;font-variant-numeric:tabular-nums;flex:none">{{ it.setsLabel }}</span>
+<span style="font-size:14.5px;font-weight:600;letter-spacing:-0.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:{{ it.nameColor }}">{{ it.name }}</span>
+</div>
+<div style="display:flex;align-items:center;gap:7px;margin-top:7px">
+<span style="font-size:10.5px;padding:2px 7px;border-radius:4px;background:#2b2d3a;color:#b2b6ca;flex:none">{{ it.equip }}</span>
+<span style="font-size:11px;color:#9397ab;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ it.scheme }}</span>
+</div>
+<div style="font-size:10.5px;color:#75798c;margin-top:5px;font-variant-numeric:tabular-nums">{{ it.restLabel }}</div>
+</div>
+<i class="{{ it.icon }}" style="font-size:19px;flex:none;color:{{ it.iconColor }}"></i>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-for>
+<sc-if value="{{ allDone }}" hint-placeholder-val="{{ false }}">
+<div onClick="{{ finish }}" style="margin-top:4px;padding:15px;border:1px solid #9184d9;border-radius:8px;text-align:center;font-size:13px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#d2cefd;cursor:pointer;background:#2b2741" style-hover="background:#423a6a">Finish workout</div>
+</sc-if>
+<div style="height:8px"></div>
+</div>
+
+<div style="flex:none;display:flex;border-top:1px solid #2b2d3a;background:#191b28;padding:6px 4px 8px">
+<sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+<div onClick="{{ t.pick }}" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0;cursor:pointer;min-height:48px;justify-content:center">
+<i class="{{ t.icon }}" style="font-size:19px;color:{{ t.color }}"></i>
+<span style="font-size:9.5px;letter-spacing:0.06em;color:{{ t.color }}">{{ t.label }}</span>
+</div>
+</sc-for>
+</div>
+
+<sc-if value="{{ sheet }}" hint-placeholder-val="{{ false }}">
+<div onClick="{{ close }}" style="position:absolute;inset:0;background:rgba(10,11,18,0.66);animation:fadeIn .18s ease"></div>
+</sc-if>
+<sc-if value="{{ sheet }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;left:0;right:0;bottom:0;max-height:92%;display:flex;flex-direction:column;background:#1c1e2b;border-top:1px solid #595d6c;border-radius:16px 16px 0 0;box-shadow:0 -16px 40px rgba(0,0,0,0.65);animation:sheetUp .24s cubic-bezier(.2,.8,.2,1)">
+<div onClick="{{ close }}" style="display:flex;justify-content:center;padding:9px 0 3px;cursor:pointer;flex:none">
+<div style="width:38px;height:4px;border-radius:2px;background:#595d6c"></div>
+</div>
+
+<div style="flex:1;overflow-y:auto;padding:6px 16px 0">
+<div style="height:132px;border-radius:8px;background:repeating-linear-gradient(135deg,#2b2d3a 0 7px,#232532 7px 14px);display:flex;align-items:center;justify-content:center;margin-bottom:14px">
+<span style="font-family:ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:0.08em;color:#75798c">exercise photo</span>
+</div>
+<div style="display:flex;align-items:baseline;gap:8px">
+<span style="font-size:19px;font-weight:600;letter-spacing:-0.015em">{{ sheet.name }}</span>
+<span style="font-size:12px;color:#75798c;font-variant-numeric:tabular-nums">{{ sheet.scheme }}</span>
+</div>
+<div style="display:flex;gap:7px;margin:12px 0 16px;flex-wrap:wrap">
+<div style="display:flex;align-items:center;gap:5px;padding:7px 10px;border-radius:6px;background:#2b2d3a;font-size:11.5px;color:#e9e9ed;cursor:pointer" style-hover="background:#3f424d"><span>{{ sheet.equip }}</span><i class="ph-bold ph-caret-up-down" style="font-size:11px;color:#9397ab"></i></div>
+<div style="display:flex;align-items:center;gap:5px;padding:7px 10px;border-radius:6px;border:1px solid #3f424d;font-size:11.5px;color:#b2b6ca;cursor:pointer" style-hover="border-color:#9184d9;color:#d2cefd"><i class="ph-bold ph-chart-line-up" style="font-size:12px"></i><span>History</span></div>
+<div style="display:flex;align-items:center;gap:5px;padding:7px 10px;border-radius:6px;border:1px solid #3f424d;font-size:11.5px;color:#b2b6ca;cursor:pointer" style-hover="border-color:#9184d9;color:#d2cefd"><i class="ph-bold ph-note-pencil" style="font-size:12px"></i><span>Notes</span></div>
+</div>
+
+<div style="display:grid;grid-template-columns:26px 1fr 1fr 1fr 1fr;gap:0 6px;font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:#75798c;padding-bottom:7px;border-bottom:1px solid #2b2d3a">
+<div>Set</div><div style="text-align:right">Weight</div><div style="text-align:right">Reps</div><div style="text-align:right">Effort</div><div style="text-align:right">Last time</div>
+</div>
+<sc-for list="{{ sheet.sets }}" as="s" hint-placeholder-count="4">
+<div style="display:grid;grid-template-columns:26px 1fr 1fr 1fr 1fr;gap:0 6px;align-items:center;padding:9px 0;border-bottom:1px solid #232532;font-variant-numeric:tabular-nums;background:{{ s.rowBg }}">
+<div style="font-size:12.5px;font-weight:600;color:{{ s.numColor }}">{{ s.n }}</div>
+<div style="text-align:right;font-size:14px;font-weight:600;color:{{ s.valColor }}">{{ s.weight }}</div>
+<div style="text-align:right;font-size:14px;font-weight:600;color:{{ s.valColor }}">{{ s.reps }}</div>
+<div style="text-align:right;font-size:12px;font-weight:600;color:{{ s.effortColor }}">{{ s.effort }}</div>
+<div style="text-align:right;font-size:11px;color:#75798c">{{ s.prev }}</div>
+</div>
+</sc-for>
+<div style="height:14px"></div>
+</div>
+
+<div style="flex:none;padding:12px 16px 14px;border-top:1px solid #2b2d3a;background:#232532">
+<sc-if value="{{ sheet.resting }}" hint-placeholder-val="{{ false }}">
+<div>
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px">
+<div style="display:flex;align-items:baseline;gap:8px">
+<span style="font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:#9397ab">Rest</span>
+<span style="font-size:26px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-0.02em;color:#d2cefd;line-height:1">{{ sheet.restLeft }}</span>
+</div>
+<div onClick="{{ skipRest }}" style="padding:9px 14px;border:1px solid #3f424d;border-radius:6px;font-size:11.5px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#b2b6ca;cursor:pointer" style-hover="border-color:#9184d9;color:#d2cefd">Skip</div>
+</div>
+<div style="height:3px;background:#3f424d;border-radius:2px;overflow:hidden">
+<div style="height:100%;background:#9184d9;width:{{ sheet.restPct }};transition:width 1s linear"></div>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{ sheet.logging }}" hint-placeholder-val="{{ true }}">
+<div>
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+<span style="font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:#9397ab">{{ sheet.activeLabel }}</span>
+<span style="font-size:10.5px;color:#75798c">{{ sheet.hint }}</span>
+</div>
+<div style="display:flex;gap:10px">
+<div style="flex:1;display:flex;align-items:center;justify-content:space-between;background:#1c1e2b;border:1px solid #3f424d;border-radius:8px;padding:6px">
+<div onClick="{{ sheet.wDown }}" style="width:44px;height:44px;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:#2b2d3a" style-hover="background:#3f424d"><i class="ph-bold ph-minus" style="font-size:16px;color:#e9e9ed"></i></div>
+<div style="text-align:center;padding:0 2px">
+<div style="font-size:23px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-0.02em;line-height:1.05">{{ sheet.weight }}</div>
+<div style="font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:#75798c;margin-top:3px">{{ sheet.weightUnit }}</div>
+</div>
+<div onClick="{{ sheet.wUp }}" style="width:44px;height:44px;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:#2b2d3a" style-hover="background:#3f424d"><i class="ph-bold ph-plus" style="font-size:16px;color:#e9e9ed"></i></div>
+</div>
+<div style="flex:1;display:flex;align-items:center;justify-content:space-between;background:#1c1e2b;border:1px solid #3f424d;border-radius:8px;padding:6px">
+<div onClick="{{ sheet.rDown }}" style="width:44px;height:44px;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:#2b2d3a" style-hover="background:#3f424d"><i class="ph-bold ph-minus" style="font-size:16px;color:#e9e9ed"></i></div>
+<div style="text-align:center;padding:0 2px">
+<div style="font-size:23px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-0.02em;line-height:1.05">{{ sheet.reps }}</div>
+<div style="font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:#75798c;margin-top:3px">Reps</div>
+</div>
+<div onClick="{{ sheet.rUp }}" style="width:44px;height:44px;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:#2b2d3a" style-hover="background:#3f424d"><i class="ph-bold ph-plus" style="font-size:16px;color:#e9e9ed"></i></div>
+</div>
+</div>
+<sc-if value="{{ showEffort }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;align-items:center;gap:6px;margin-top:10px">
+<span style="font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:#75798c;flex:none">Effort</span>
+<sc-for list="{{ effortOpts }}" as="e" hint-placeholder-count="4">
+<div onClick="{{ e.pick }}" style="flex:1;text-align:center;padding:8px 0;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid {{ e.border }};color:{{ e.color }};background:{{ e.bg }}">{{ e.label }}</div>
+</sc-for>
+</div>
+</sc-if>
+<div onClick="{{ logSet }}" style="margin-top:11px;padding:16px;border-radius:8px;text-align:center;font-size:13px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;border:1px solid #9184d9;color:#d2cefd;background:#2b2741;min-height:52px" style-hover="background:#423a6a">{{ sheet.cta }}</div>
+</div>
+</sc-if>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ otherTab }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;left:0;right:0;top:0;bottom:62px;background:#161826;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px">
+<i class="{{ otherTab.icon }}" style="font-size:30px;color:#3f424d"></i>
+<div style="font-size:14px;font-weight:600;color:#b2b6ca">{{ otherTab.label }}</div>
+<div style="font-size:11.5px;color:#75798c;text-align:center;max-width:230px;line-height:1.5">{{ otherTab.note }}</div>
+</div>
+</sc-if>
+
+</div>
+</x-import>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:520,&quot;height&quot;:960},&quot;weightStep&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;2.5&quot;,&quot;5&quot;,&quot;10&quot;],&quot;default&quot;:&quot;5&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Logging&quot;},&quot;autoRest&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Logging&quot;},&quot;showEffort&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Logging&quot;}}">
+class Component extends DCLogic {
+  static seed() {
+    const raw = [
+      { id: 1, group: 'Press & Curl', name: 'Barbell Bench Press', equip: 'Barbell', rest: 120, prev: '135 × 8', sets: [{ t: 10, w: 135 }, { t: 8, w: 145 }, { t: 6, w: 155 }, { t: 6, w: 155 }] },
+      { id: 2, group: 'Press & Curl', name: 'Pull-Up', equip: 'Pull-up bar', rest: 90, bw: true, prev: 'BW × 7', sets: [{ t: 8, w: 0 }, { t: 8, w: 0 }, { t: 6, w: 0 }] },
+      { id: 3, group: 'Press & Curl', name: 'Dumbbell Shoulder Press', equip: 'Dumbbell', rest: 90, prev: '40 × 12', sets: [{ t: 12, w: 40 }, { t: 12, w: 40 }, { t: 10, w: 45 }] },
+      { id: 4, group: 'Press & Curl', name: 'TRX Bicep Curl', equip: 'TRX', rest: 60, bw: true, prev: 'BW × 12', sets: [{ t: 12, w: 0 }, { t: 12, w: 0 }, { t: 12, w: 0 }] },
+      { id: 5, group: 'Cool Down', name: 'Kettlebell Halo', equip: 'Kettlebell', rest: 45, prev: '25 × 10', sets: [{ t: 10, w: 25 }, { t: 10, w: 25 }] },
+      { id: 6, group: 'Cool Down', name: 'Jump Rope', equip: 'Jump rope', rest: 0, bw: true, prev: '3 min', sets: [{ t: 1, w: 0, time: '3 min' }] }
+    ];
+    return raw.map(e => ({ ...e, sets: e.sets.map(s => ({ ...s, reps: s.t, weight: s.w, effort: null, done: false })) }));
+  }
+
+  state = {
+    tab: 'today', elapsed: 1732, active: 1204,
+    openId: null, rest: 0, restTotal: 0,
+    weight: 0, reps: 0, effort: null, finished: false,
+    ex: Component.seed()
+  };
+
+  EFFORTS = [
+    { key: 'easy', label: 'Easy', pct: '50%', color: '#5ecf9e' },
+    { key: 'mod', label: 'Mod', pct: '70%', color: '#e3c85c' },
+    { key: 'hard', label: 'Hard', pct: '90%', color: '#e39a5c' },
+    { key: 'max', label: 'Max', pct: '100%', color: '#e0625f' }
+  ];
+
+  componentDidMount() {
+    this.timer = setInterval(() => {
+      this.setState(s => {
+        const n = { elapsed: s.elapsed + 1, active: s.rest > 0 ? s.active : s.active + 1 };
+        if (s.rest > 0) n.rest = s.rest - 1;
+        return n;
+      });
+    }, 1000);
+  }
+  componentWillUnmount() { clearInterval(this.timer); }
+
+  step() { return Number(this.props.weightStep ?? 5); }
+  fmt(t) { const m = Math.floor(t / 60), s = t % 60; return m + ':' + String(s).padStart(2, '0'); }
+  find(id) { return this.state.ex.find(e => e.id === id); }
+  activeIdx(e) { return e.sets.findIndex(s => !s.done); }
+
+  open = (id) => {
+    const e = this.find(id);
+    const i = this.activeIdx(e);
+    const s = i < 0 ? e.sets[e.sets.length - 1] : e.sets[i];
+    this.setState({ openId: id, weight: s.weight, reps: s.reps, effort: null });
+  };
+  close = () => this.setState({ openId: null });
+  bump = (k, d) => this.setState(s => ({ [k]: Math.max(0, s[k] + d) }));
+  pickEffort = (key) => this.setState(s => ({ effort: s.effort === key ? null : key }));
+  skipRest = () => this.setState({ rest: 0, restTotal: 0 });
+
+  logSet = () => {
+    const { openId, weight, reps, effort } = this.state;
+    const e = this.find(openId);
+    const i = this.activeIdx(e);
+    if (i < 0) { this.close(); return; }
+    const ex = this.state.ex.map(x => x.id !== openId ? x : {
+      ...x, sets: x.sets.map((s, k) => k !== i ? s : { ...s, weight, reps, effort, done: true })
+    });
+    const next = ex.find(x => x.id === openId).sets[i + 1];
+    const auto = this.props.autoRest ?? true;
+    const rest = auto && next ? e.rest : 0;
+    this.setState({ ex, rest, restTotal: rest, effort: null,
+      weight: next ? next.weight : weight, reps: next ? next.reps : reps });
+    if (!next) setTimeout(() => this.setState(s => (s.openId === openId ? { openId: null } : {})), 550);
+  };
+
+  finish = () => this.setState({ finished: true });
+  pickTab = (t) => this.setState({ tab: t, openId: null });
+
+  renderVals() {
+    const st = this.state;
+    const unit = 'lb';
+    const done = st.ex.filter(e => e.sets.every(s => s.done)).length;
+    const groups = [];
+    st.ex.forEach(e => {
+      const total = e.sets.length;
+      const logged = e.sets.filter(s => s.done).length;
+      const isDone = logged === total;
+      const nextUp = !isDone && st.ex.filter(x => !x.sets.every(s => s.done))[0] === e;
+      let g = groups.find(x => x.label === e.group);
+      if (!g) { g = { label: e.group, items: [] }; groups.push(g); }
+      const scheme = e.sets[0].time
+        ? e.sets[0].time
+        : 'Reps ' + e.sets.map(s => s.t).join(',') + (e.bw ? '' : '  ·  ' + e.sets.map(s => s.w).join('/') + ' ' + unit);
+      g.items.push({
+        name: e.name, equip: e.equip, scheme,
+        setsLabel: total + '×',
+        restLabel: e.rest ? 'Rest ' + (e.rest >= 60 ? (e.rest / 60) + ' min' : e.rest + 's') + ' between sets' : 'No rest interval',
+        bg: nextUp ? '#232532' : '#1d1f2b',
+        border: nextUp ? '#5d5294' : '#262835',
+        nameColor: isDone ? '#9397ab' : '#e9e9ed',
+        icon: isDone ? 'ph-bold ph-check-circle' : (logged ? 'ph-bold ph-circle-half' : 'ph-bold ph-caret-right'),
+        iconColor: isDone ? '#9184d9' : (logged ? '#b5abfc' : '#595d6c'),
+        open: () => this.open(e.id)
+      });
+    });
+
+    let sheet = null;
+    if (st.openId) {
+      const e = this.find(st.openId);
+      const i = this.activeIdx(e);
+      const resting = st.rest > 0;
+      sheet = {
+        name: e.name, equip: e.equip,
+        scheme: e.sets.filter(s => s.done).length + '/' + e.sets.length + ' sets logged',
+        sets: e.sets.map((s, k) => ({
+          n: k + 1,
+          weight: s.done ? (e.bw ? 'BW' : s.weight) : (e.bw ? 'BW' : s.w),
+          reps: s.done ? s.reps : s.t,
+          effort: s.effort ? (this.EFFORTS.find(x => x.key === s.effort) || {}).pct : (s.done ? '—' : ''),
+          effortColor: s.effort ? (this.EFFORTS.find(x => x.key === s.effort) || {}).color : '#4a4d5c',
+          prev: s.done ? '' : e.prev,
+          rowBg: k === i ? 'rgba(145,132,217,0.07)' : 'transparent',
+          numColor: s.done ? '#9184d9' : (k === i ? '#e9e9ed' : '#595d6c'),
+          valColor: s.done ? '#e9e9ed' : (k === i ? '#b2b6ca' : '#595d6c')
+        })),
+        resting, logging: !resting && i >= 0,
+        restLeft: this.fmt(st.rest),
+        restPct: (st.restTotal ? (st.rest / st.restTotal) * 100 : 0) + '%',
+        activeLabel: i >= 0 ? 'Set ' + (i + 1) + ' of ' + e.sets.length : 'Complete',
+        hint: 'Last time ' + e.prev,
+        weight: e.bw ? 'BW' : st.weight,
+        weightUnit: e.bw ? 'bodyweight' : unit,
+        reps: st.reps,
+        cta: i === e.sets.length - 1 ? 'Log set · finish exercise' : 'Log set',
+        wUp: () => this.bump('weight', this.step()),
+        wDown: () => this.bump('weight', -this.step()),
+        rUp: () => this.bump('reps', 1),
+        rDown: () => this.bump('reps', -1)
+      };
+    }
+
+    const tabDefs = [
+      { key: 'today', label: 'Today', icon: 'ph-bold ph-lightning', note: '' },
+      { key: 'library', label: 'Library', icon: 'ph-bold ph-barbell', note: 'Exercise library, filterable by equipment and muscle group. Not designed in this pass.' },
+      { key: 'progress', label: 'Progress', icon: 'ph-bold ph-chart-line-up', note: 'Per-exercise charts and PRs. Not designed in this pass.' },
+      { key: 'more', label: 'More', icon: 'ph-bold ph-dots-three-circle', note: 'Programs, templates and settings. Not designed in this pass.' }
+    ];
+
+    return {
+      title: st.finished ? 'Upper Day A · complete' : 'Upper Day A',
+      totalTime: this.fmt(st.elapsed),
+      activeTime: this.fmt(st.active),
+      progressLabel: done + ' of ' + st.ex.length + ' done',
+      progressPct: (done / st.ex.length) * 100 + '%',
+      sections: groups,
+      allDone: done === st.ex.length && !st.finished,
+      finish: this.finish,
+      sheet, close: this.close, logSet: this.logSet, skipRest: this.skipRest,
+      showEffort: (this.props.showEffort ?? true),
+      effortOpts: this.EFFORTS.map(o => ({
+        label: o.label,
+        border: st.effort === o.key ? o.color : '#3f424d',
+        color: st.effort === o.key ? o.color : '#9397ab',
+        bg: st.effort === o.key ? 'rgba(255,255,255,0.04)' : 'transparent',
+        pick: () => this.pickEffort(o.key)
+      })),
+      tabs: tabDefs.map(t => ({
+        label: t.label, icon: t.icon,
+        color: st.tab === t.key ? '#9184d9' : '#75798c',
+        pick: () => this.pickTab(t.key)
+      })),
+      otherTab: st.tab === 'today' ? null : tabDefs.find(t => t.key === st.tab)
+    };
+  }
+}
+</script>
+</body>
+</html>
