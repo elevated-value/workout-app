@@ -939,6 +939,155 @@ body { overscroll-behavior-y: none; -webkit-tap-highlight-color: transparent; }
 }
 .pick-row:hover { border-color: var(--accent-line); }
 
+/* ── workout logging ──────────────────────────────────────── */
+.log-head {
+  flex: none;
+  padding: calc(8px + var(--safe-top)) 16px 12px;
+  border-bottom: 1px solid var(--line);
+}
+.log-stats { display: flex; align-items: flex-end; gap: 22px; padding: 10px 0 12px; }
+.log-stat-num { font-size: 26px; font-weight: 600; letter-spacing: -0.02em; line-height: 1; }
+.log-stat-label {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-4);
+  margin-top: 5px;
+}
+.log-bar { height: 3px; background: var(--line-strong); border-radius: 2px; overflow: hidden; }
+.log-bar-fill { height: 100%; background: var(--color-accent); transition: width 0.3s; }
+
+.log-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  padding: 11px;
+  border-radius: 8px;
+  background: var(--row);
+  border: 1px solid var(--line);
+  cursor: pointer;
+  text-align: left;
+}
+.log-row:hover { border-color: var(--text-5); }
+
+.log-finish {
+  width: 100%;
+  margin-top: 8px;
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid var(--line-strong);
+  background: transparent;
+  color: var(--text-3);
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.log-finish:hover { border-color: var(--color-accent-600); color: var(--text-2); }
+.log-finish.ready {
+  border-color: var(--color-accent);
+  background: var(--accent-soft);
+  color: var(--accent-fg);
+}
+
+.rest-bar {
+  flex: none;
+  padding: 11px 16px calc(13px + var(--safe-bottom));
+  border-top: 1px solid var(--accent-line);
+  background: #1f1c30;
+}
+.rest-bar-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.rest-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 7px;
+  border: 1px solid var(--line-strong);
+  background: transparent;
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.rest-btn.accent {
+  border-color: var(--color-accent);
+  background: var(--accent-tint);
+  color: var(--accent-fg);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.set-table { margin-top: 16px; }
+.set-row {
+  display: grid;
+  grid-template-columns: 32px 1fr 1fr 1fr;
+  gap: 0 8px;
+  align-items: center;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 13.5px;
+}
+.set-row > span:not(:first-child) { text-align: right; }
+.set-head {
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-4);
+  padding-bottom: 7px;
+}
+.set-active { background: var(--accent-tint); border-radius: 6px; padding-left: 6px; padding-right: 6px; }
+
+.log-steppers { display: flex; gap: 10px; }
+.log-steppers > .stepper { flex: 1; }
+
+.effort-row { display: flex; align-items: center; gap: 6px; margin-top: 10px; }
+.effort-opt {
+  flex: 1;
+  text-align: center;
+  padding: 9px 0;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--line-strong);
+  background: transparent;
+  color: var(--text-3);
+}
+
+.amrap-clock { display: flex; flex-direction: column; align-items: center; padding: 12px 0 6px; }
+.amrap-circle {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  border-radius: 99px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: var(--row-raised);
+  border: 1px solid var(--line-strong);
+  color: var(--accent-fg);
+}
+.amrap-circle.on { background: var(--accent-soft); border-color: var(--color-accent); }
+.amrap-target {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  margin-top: 20px;
+  padding: 14px 16px;
+  border-radius: 8px;
+  background: var(--row-raised);
+  border: 1px solid var(--line);
+}
+
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes sheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 @keyframes popIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }

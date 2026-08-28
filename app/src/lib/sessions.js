@@ -80,6 +80,57 @@ export async function updateSession(id, patch) {
   if (error) throw error
 }
 
+// Move a session into logging (§3.5). Only stamps started_at the first time.
+export async function startSession(session) {
+  if (session.status !== 'planned') return session
+  const { data, error } = await supabase
+    .from('workout_sessions')
+    .update({ status: 'in_progress', started_at: new Date().toISOString() })
+    .eq('id', session.id)
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+export async function completeSession(id) {
+  const { error } = await supabase
+    .from('workout_sessions')
+    .update({ status: 'completed', completed_at: new Date().toISOString() })
+    .eq('id', id)
+  if (error) throw error
+}
+
+// One set (Straight Sets) or one round (AMRAP — set_number is the round number).
+export async function logSet(row) {
+  const { data, error } = await supabase
+    .from('logged_sets')
+    .insert(row)
+    .select('*, exercise:exercises(name, equipment, metric_type)')
+    .single()
+  if (error) throw error
+  return data
+}
+
+export async function deleteLoggedSet(id) {
+  const { error } = await supabase.from('logged_sets').delete().eq('id', id)
+  if (error) throw error
+}
+
+// Most recent logged set for an exercise on any earlier date — the "last time"
+// reference shown while logging (§3.5).
+export async function fetchLastPerformance(exerciseId, beforeDateISO) {
+  const { data, error } = await supabase
+    .from('logged_sets')
+    .select('reps, weight, duration, effort, performed_at, workout_sessions!inner(date)')
+    .eq('exercise_id', exerciseId)
+    .lt('workout_sessions.date', beforeDateISO)
+    .order('performed_at', { ascending: false })
+    .limit(1)
+  if (error) throw error
+  return data?.[0] ?? null
+}
+
 // Drop an empty planned session so it stops colouring the calendar.
 export async function deleteSessionIfEmpty(id) {
   const [{ count: plannedCount }, { count: loggedCount }] = await Promise.all([
