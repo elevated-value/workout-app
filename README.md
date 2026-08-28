@@ -20,7 +20,7 @@ designed screens, and the database SQL.
 | Project scaffold, PWA shell, Nocturne design tokens | ✅ |
 | Supabase schema + starter seed (`supabase/`) | ✅ (run manually — see below) |
 | Auth + Login screen | ✅ |
-| Manage Library (list, filters, Add/Edit, archive) | ⏳ |
+| Manage Library (list, filters, Add/Edit, archive) | ✅ |
 | Home + weekly strip + month calendar + Day Record | ⏳ |
 | Day builder / Edit a day (add, reorder, targets, format) | ⏳ |
 | Workout Logging — Straight Sets (rest timer, effort) | ⏳ |
