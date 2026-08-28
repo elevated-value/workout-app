@@ -15,6 +15,8 @@ designed screens, and the database SQL.
 
 ## Build status (v1)
 
+All v1 features are built. Programs (§3.9) is the deferred Phase 2 layer.
+
 | Area | State |
 | --- | --- |
 | Project scaffold, PWA shell, Nocturne design tokens | ✅ |
@@ -25,7 +27,7 @@ designed screens, and the database SQL.
 | Day builder / Edit a day (add, reorder, targets, format) | ✅ |
 | Workout Logging — Straight Sets (rest timer, effort) | ✅ |
 | Workout Logging — AMRAP (start, countdown, rounds) | ✅ |
-| Copy previous week / Copy to date (+ overwrite confirm) | ⏳ |
+| Copy previous week / Copy to date (+ overwrite confirm) | ✅ |
 | Progress (exercise list + weight/bodyweight/time/AMRAP detail) | ✅ |
 | Body Weight tracking + Home quick-log | ✅ |
 | Programs (§3.9) | Phase 2 — not in v1 |

@@ -5,13 +5,14 @@ import {
   Barbell,
   Play,
   Plus,
+  Copy,
   CaretLeft,
   CaretRight,
   Check,
   NotePencil,
   Scales,
 } from '@phosphor-icons/react'
-import { Loading, ErrorNote, Toast } from '../components/ui.jsx'
+import { Loading, ErrorNote, Toast, Confirm } from '../components/ui.jsx'
 import BodyWeightSheet from '../components/BodyWeightSheet.jsx'
 import { useToast } from '../lib/useToast.js'
 import {
@@ -20,6 +21,7 @@ import {
   computeStreak,
   dayStatus,
 } from '../lib/sessions.js'
+import { copyWeekTo, weekContent } from '../lib/copy.js'
 import {
   todayISO,
   fromISODate,
@@ -34,7 +36,7 @@ import {
 // Home — the landing view (§3.7). The weekly strip swipes / chevrons between
 // weeks (§3.7 rev. 24); the featured card follows whichever day is selected,
 // defaulting to today. A strip day still taps through to its Day Record.
-// "Copy previous week" (§3.3) lands with the Copy/Duplicate build step.
+// "Copy previous week" (§3.3) fills the shown week from the one before it.
 
 const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -74,6 +76,9 @@ export default function Home() {
   const [counts, setCounts] = useState({})
   const [err, setErr] = useState(null)
   const [bwOpen, setBwOpen] = useState(false)
+  const [reloadKey, setReloadKey] = useState(0)
+  const [copyAsk, setCopyAsk] = useState(null) // { srcWeek, destWeek, conflicts, anyLogged }
+  const [copyBusy, setCopyBusy] = useState(false)
   const { message, show } = useToast()
 
   const touchRef = useRef(null)
@@ -97,7 +102,7 @@ export default function Home() {
     return () => {
       live = false
     }
-  }, [today, dates])
+  }, [today, dates, reloadKey])
 
   const byDate = useMemo(() => {
     const m = {}
@@ -117,6 +122,47 @@ export default function Home() {
     selectDay(iso)
     navigate(`/day/${iso}`)
   }
+
+  // "Copy previous week" — fills the shown week from the one before it (§3.3).
+  async function askCopyWeek() {
+    setCopyBusy(true)
+    try {
+      const destWeek = start
+      const srcWeek = addDays(start, -7)
+      const src = await weekContent(srcWeek)
+      if (!src.some((d) => d.hasPlanned)) {
+        show('Nothing to copy — the previous week has no workouts.')
+        return
+      }
+      const conflicts = (await weekContent(destWeek)).filter((d) => d.hasContent)
+      if (conflicts.length === 0) {
+        await runCopyWeek(srcWeek, destWeek)
+      } else {
+        setCopyAsk({ srcWeek, destWeek, conflicts, anyLogged: conflicts.some((d) => d.hasLogged) })
+      }
+    } catch (e) {
+      setErr(e.message ?? 'Could not copy the week.')
+    } finally {
+      setCopyBusy(false)
+    }
+  }
+
+  async function runCopyWeek(srcWeek, destWeek) {
+    setCopyBusy(true)
+    try {
+      await copyWeekTo(srcWeek, destWeek)
+      setCopyAsk(null)
+      setReloadKey((k) => k + 1)
+      show('Previous week copied in')
+    } catch (e) {
+      setErr(e.message ?? 'Could not copy the week.')
+      setCopyAsk(null)
+    } finally {
+      setCopyBusy(false)
+    }
+  }
+
+  const weekRange = (ws) => `${shortDate(ws)} – ${shortDate(addDays(ws, 6))}`
 
   const onTouchStart = (e) => {
     touchRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }
@@ -236,6 +282,11 @@ export default function Home() {
           })}
         </div>
 
+        <button type="button" className="wk-copy" disabled={copyBusy} onClick={askCopyWeek}>
+          <Copy size={12} weight="bold" />
+          {copyBusy ? 'Copying…' : 'Copy previous week'}
+        </button>
+
         <div className="home-section">
           <div className="kicker" style={{ marginBottom: 10 }}>
             {longDate(selectedDate)}
@@ -348,6 +399,22 @@ export default function Home() {
         onClose={() => setBwOpen(false)}
         onSaved={(entry) => show(`Logged ${Math.round(Number(entry.weight) * 10) / 10} lbs`)}
       />
+
+      <Confirm
+        open={Boolean(copyAsk)}
+        title="Replace this week?"
+        body={
+          copyAsk &&
+          `${copyAsk.conflicts.length} day${copyAsk.conflicts.length === 1 ? '' : 's'} in ${weekRange(
+            copyAsk.destWeek,
+          )} already have workouts. Copying ${weekRange(copyAsk.srcWeek)} replaces them.`
+        }
+        warn={copyAsk?.anyLogged ? 'Logged data for those days will be lost.' : null}
+        confirmLabel="Replace"
+        onConfirm={() => runCopyWeek(copyAsk.srcWeek, copyAsk.destWeek)}
+        onCancel={() => setCopyAsk(null)}
+      />
+
       <Toast message={message} />
     </>
   )

@@ -4,6 +4,7 @@ import {
   PencilSimple,
   Play,
   Plus,
+  Copy,
   NotePencil,
   ArrowCounterClockwise,
   CheckCircle,
@@ -11,10 +12,12 @@ import {
   CircleDashed,
   Barbell,
 } from '@phosphor-icons/react'
-import { TopBar, Loading, ErrorNote, Toast } from '../components/ui.jsx'
+import { TopBar, Loading, ErrorNote, Toast, Confirm } from '../components/ui.jsx'
+import DatePickerSheet from '../components/DatePickerSheet.jsx'
 import { useToast } from '../lib/useToast.js'
 import { fetchDay, dayStatus } from '../lib/sessions.js'
-import { todayISO, longDate, mmss, metricValueLabel, plannedTargetLabel, formatTag } from '../lib/format.js'
+import { copyDayTo, dayContent } from '../lib/copy.js'
+import { todayISO, longDate, shortDate, mmss, metricValueLabel, plannedTargetLabel, formatTag } from '../lib/format.js'
 
 // Day Record (§3.7) — every date resolves to one of: logged (or in progress),
 // scheduled, missed, or an empty open day. Never a dead end.
@@ -63,6 +66,9 @@ export default function DayRecord() {
 
   const [data, setData] = useState(null)
   const [err, setErr] = useState(null)
+  const [copyOpen, setCopyOpen] = useState(false)
+  const [pendingCopy, setPendingCopy] = useState(null) // { destDate, hasLogged, navigateAfter }
+  const [copyBusy, setCopyBusy] = useState(false)
 
   useEffect(() => {
     let live = true
@@ -75,6 +81,37 @@ export default function DayRecord() {
       live = false
     }
   }, [date])
+
+  // Copy this day's structure elsewhere (§3.3). Confirm first only when the
+  // destination already holds something.
+  async function requestCopy(destDate, navigateAfter) {
+    if (destDate === date) return
+    setCopyOpen(false)
+    try {
+      const c = await dayContent(destDate)
+      if (c.hasContent) {
+        setPendingCopy({ destDate, hasLogged: c.hasLogged, navigateAfter })
+      } else {
+        await runCopy(destDate, navigateAfter)
+      }
+    } catch (e) {
+      setErr(e.message ?? 'Could not check that date.')
+    }
+  }
+
+  async function runCopy(destDate, navigateAfter) {
+    setCopyBusy(true)
+    try {
+      await copyDayTo(date, destDate)
+      setPendingCopy(null)
+      if (navigateAfter) navigate(`/day/${destDate}`)
+      else show(`Copied to ${shortDate(destDate)}`)
+    } catch (e) {
+      setErr(e.message ?? 'Could not copy the workout.')
+      setPendingCopy(null)
+    }
+    setCopyBusy(false)
+  }
 
   const dateLabel = longDate(date) + (date === today ? ' · Today' : '')
 
@@ -197,7 +234,27 @@ export default function DayRecord() {
           </div>
         ) : (
           <div style={{ marginTop: 22 }}>
-            <div className="kicker" style={{ marginBottom: 12 }}>{listLabel}</div>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: 12,
+              }}
+            >
+              <span className="kicker">{listLabel}</span>
+              {planned.length > 0 && (
+                <button
+                  type="button"
+                  className="wk-copy"
+                  style={{ marginTop: 0 }}
+                  onClick={() => setCopyOpen(true)}
+                >
+                  <Copy size={12} weight="bold" />
+                  Copy to…
+                </button>
+              )}
+            </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
               {planned.map((p) => {
                 const mt = p.exercise?.metric_type ?? 'weight'
@@ -280,16 +337,45 @@ export default function DayRecord() {
           </button>
         )}
         {mode === 'logged' && !inProgress && (
-          <button
-            type="button"
-            className="cta cta-quiet"
-            onClick={() => show('Repeat / Copy arrives with the Copy & Duplicate step.')}
-          >
-            <ArrowCounterClockwise size={14} weight="bold" />
-            Repeat this workout
-          </button>
+          date === today ? (
+            <button type="button" className="cta cta-quiet" onClick={() => navigate('/progress')}>
+              <ArrowCounterClockwise size={14} weight="bold" />
+              See your progress
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="cta cta-quiet"
+              disabled={copyBusy}
+              onClick={() => requestCopy(today, true)}
+            >
+              <ArrowCounterClockwise size={14} weight="bold" />
+              {copyBusy ? 'Copying…' : 'Repeat today'}
+            </button>
+          )
         )}
       </div>
+
+      <DatePickerSheet
+        open={copyOpen}
+        onClose={() => setCopyOpen(false)}
+        onPick={(iso) => requestCopy(iso, false)}
+        title={`Copy ${title === 'Open day' ? 'this workout' : title} to`}
+        excludeDate={date}
+      />
+
+      <Confirm
+        open={Boolean(pendingCopy)}
+        title="Replace that day?"
+        body={
+          pendingCopy &&
+          `This replaces the workout on ${longDate(pendingCopy.destDate)} with a fresh copy of this one.`
+        }
+        warn={pendingCopy?.hasLogged ? 'Logged data for that day will be lost.' : null}
+        confirmLabel="Replace"
+        onConfirm={() => runCopy(pendingCopy.destDate, pendingCopy.navigateAfter)}
+        onCancel={() => setPendingCopy(null)}
+      />
 
       <Toast message={message} />
     </>

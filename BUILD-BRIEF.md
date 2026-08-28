@@ -48,6 +48,10 @@ Follow `workout-app-instructions.md` §0 exactly:
 
 Within v1, a sensible build sequence given what's already designed: set up the Supabase schema and auth first (§4, §5) → Login → Manage Library (needed before any workout can reference an exercise) → Home + Day Record → Workout Logging (Straight Sets + AMRAP, Edit) → Copy/Duplicate → Progress + Body Weight. Adjust as needed, but data model and auth should come before any screen that depends on them.
 
+## Build status
+
+All of v1 is built (see the checklist in `README.md`). What remains is **Programs (§3.9)** — the deferred Phase 2 scheduling layer.
+
 ## A few things to keep front-of-mind while building
 
 - **Persistent bottom nav on every screen (instructions.md §6, rev. 23)** — Today / Library / Progress stays fixed and visible on *every* screen with no exceptions (Day Record, day builder, in-workout logging, workout-complete summary, Copy flows, everything). Only bottom sheets and confirm dialogs may temporarily cover it. A back arrow is never a screen's only way out. Login is the one exception (pre-auth, no destinations).
