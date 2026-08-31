@@ -8,7 +8,7 @@ import { supabase } from './supabase.js'
 import { weekDates } from './format.js'
 import { fetchDay, ensureSession } from './sessions.js'
 
-const PLANNED_SELECT = '*, exercise:exercises(name, equipment, metric_type)'
+const PLANNED_SELECT = '*, exercise:exercises(name, equipment, metric_type, notes)'
 
 function structureRow(pe, destSessionId, position) {
   return {

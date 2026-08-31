@@ -12,7 +12,7 @@ import {
   CircleDashed,
   Barbell,
 } from '@phosphor-icons/react'
-import { TopBar, Loading, ErrorNote, Toast, Confirm } from '../components/ui.jsx'
+import { TopBar, Loading, ErrorNote, Toast, Confirm, NotesSheet } from '../components/ui.jsx'
 import DatePickerSheet from '../components/DatePickerSheet.jsx'
 import { useToast } from '../lib/useToast.js'
 import { fetchDay, dayStatus } from '../lib/sessions.js'
@@ -32,14 +32,19 @@ function loggedDetail(sets, metricType) {
   return uniq.length === 1 ? `${sets.length}× ${uniq[0]}` : vals.join(' / ')
 }
 
-function ExerciseRow({ name, equip, tag, detail, dim, icon }) {
+// Every exercise row is tappable → opens its library notes (§3.5, rev. 25),
+// even when it has none (the sheet shows an empty state, never a dead tap).
+function ExerciseRow({ name, equip, tag, detail, dim, icon, hasNotes, onClick }) {
   return (
-    <div className={`dr-row${dim ? ' dim' : ''}`}>
+    <button type="button" className={`dr-row${dim ? ' dim' : ''}`} onClick={onClick}>
       <span className="dr-thumb" />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
           {tag && <span className="dr-sets tnum">{tag}</span>}
           <span className="dr-name">{name}</span>
+          {hasNotes && (
+            <NotePencil size={12} weight="bold" style={{ color: 'var(--text-4)', flex: 'none' }} />
+          )}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 6 }}>
           {equip && <span className="pill">{equip}</span>}
@@ -47,7 +52,7 @@ function ExerciseRow({ name, equip, tag, detail, dim, icon }) {
         </div>
       </div>
       {icon}
-    </div>
+    </button>
   )
 }
 
@@ -69,6 +74,7 @@ export default function DayRecord() {
   const [copyOpen, setCopyOpen] = useState(false)
   const [pendingCopy, setPendingCopy] = useState(null) // { destDate, hasLogged, navigateAfter }
   const [copyBusy, setCopyBusy] = useState(false)
+  const [notesFor, setNotesFor] = useState(null) // { name, notes } | null
 
   useEffect(() => {
     let live = true
@@ -269,6 +275,10 @@ export default function DayRecord() {
                     tag={formatTag(p)}
                     detail={isLoggedView ? loggedDetail(sets, mt) : plannedTargetLabel(p)}
                     dim={isLoggedView && !done}
+                    hasNotes={Boolean(p.exercise?.notes?.trim())}
+                    onClick={() =>
+                      setNotesFor({ name: p.exercise?.name ?? 'Exercise', notes: p.exercise?.notes })
+                    }
                     icon={
                       isLoggedView ? (
                         done ? (
@@ -291,6 +301,10 @@ export default function DayRecord() {
                   equip={g.exercise?.equipment?.[0]}
                   tag=""
                   detail={loggedDetail(g.sets, g.exercise?.metric_type ?? 'weight')}
+                  hasNotes={Boolean(g.exercise?.notes?.trim())}
+                  onClick={() =>
+                    setNotesFor({ name: g.exercise?.name ?? 'Exercise', notes: g.exercise?.notes })
+                  }
                   icon={<CheckCircle size={16} weight="bold" style={{ color: 'var(--color-accent)', flex: 'none' }} />}
                 />
               ))}
@@ -375,6 +389,13 @@ export default function DayRecord() {
         confirmLabel="Replace"
         onConfirm={() => runCopy(pendingCopy.destDate, pendingCopy.navigateAfter)}
         onCancel={() => setPendingCopy(null)}
+      />
+
+      <NotesSheet
+        open={Boolean(notesFor)}
+        onClose={() => setNotesFor(null)}
+        name={notesFor?.name}
+        notes={notesFor?.notes}
       />
 
       <Toast message={message} />

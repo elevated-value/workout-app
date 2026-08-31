@@ -57,7 +57,9 @@ export function ErrorNote({ children }) {
 }
 
 // ── bottom sheet ───────────────────────────────────────────────────
-export function Sheet({ open, onClose, children }) {
+// `stack` lifts a sheet above another already-open sheet (still below Confirm),
+// so a notes sheet can sit over the in-workout exercise sheet (§3.5).
+export function Sheet({ open, onClose, children, stack = false }) {
   useEffect(() => {
     if (!open) return
     const onKey = (e) => e.key === 'Escape' && onClose?.()
@@ -67,12 +69,61 @@ export function Sheet({ open, onClose, children }) {
   if (!open) return null
   return (
     <>
-      <div className="sheet-backdrop" onClick={onClose} />
-      <div className="sheet" role="dialog" aria-modal="true">
+      <div
+        className="sheet-backdrop"
+        style={stack ? { zIndex: 28 } : undefined}
+        onClick={onClose}
+      />
+      <div
+        className="sheet"
+        style={stack ? { zIndex: 29 } : undefined}
+        role="dialog"
+        aria-modal="true"
+      >
         <div className="sheet-grip" onClick={onClose} />
         {children}
       </div>
     </>
+  )
+}
+
+// ── exercise notes viewer ──────────────────────────────────────────
+// Opened by tapping an exercise on the Day Record list or its card on the
+// in-workout logging screen (§3.5, rev. 25). Every exercise opens this — an
+// exercise with no notes shows the empty state rather than being a dead tap.
+export function NotesSheet({ open, onClose, name, notes, stack = false }) {
+  const text = (notes ?? '').trim()
+  return (
+    <Sheet open={open} onClose={onClose} stack={stack}>
+      <div className="sheet-body">
+        <div className="kicker">Exercise notes</div>
+        <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.015em', marginTop: 8 }}>
+          {name}
+        </div>
+        {text ? (
+          <p
+            style={{
+              marginTop: 14,
+              fontSize: 13.5,
+              lineHeight: 1.65,
+              color: 'var(--text-2)',
+              whiteSpace: 'pre-wrap',
+            }}
+          >
+            {text}
+          </p>
+        ) : (
+          <p style={{ marginTop: 14, fontSize: 12.5, lineHeight: 1.6, color: 'var(--text-4)' }}>
+            No notes set for this exercise. Add them from Manage Library.
+          </p>
+        )}
+      </div>
+      <div className="action-bar">
+        <button type="button" className="cta cta-quiet" onClick={onClose}>
+          Close
+        </button>
+      </div>
+    </Sheet>
   )
 }
 

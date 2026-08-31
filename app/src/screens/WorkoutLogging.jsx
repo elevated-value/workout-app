@@ -13,8 +13,9 @@ import {
   FlagCheckered,
   Barbell,
   MagnifyingGlass,
+  NotePencil,
 } from '@phosphor-icons/react'
-import { TopBar, Loading, ErrorNote, Sheet, Stepper, Confirm, Toast } from '../components/ui.jsx'
+import { TopBar, Loading, ErrorNote, Sheet, Stepper, Confirm, Toast, NotesSheet } from '../components/ui.jsx'
 import { useToast } from '../lib/useToast.js'
 import { fetchExercises, fetchEquipment } from '../lib/library.js'
 import { fetchSettings } from '../lib/settings.js'
@@ -76,6 +77,7 @@ export default function WorkoutLogging() {
   const [amrap, setAmrap] = useState(null)
   const [lastPerf, setLastPerf] = useState({})
   const [finishAsk, setFinishAsk] = useState(false)
+  const [notesOpen, setNotesOpen] = useState(false)
 
   const sessionRef = useRef(null)
   sessionRef.current = session
@@ -213,6 +215,7 @@ export default function WorkoutLogging() {
   function closeSheet() {
     setOpenId(null)
     setAmrap(null)
+    setNotesOpen(false)
   }
 
   async function logStraight() {
@@ -423,6 +426,9 @@ export default function WorkoutLogging() {
                       <span className="dr-name" style={{ color: done ? 'var(--text-3)' : 'var(--color-text)' }}>
                         {row.exercise?.name}
                       </span>
+                      {row.exercise?.notes?.trim() && (
+                        <NotePencil size={12} weight="bold" style={{ color: 'var(--text-4)', flex: 'none' }} />
+                      )}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 6 }}>
                       {row.exercise?.equipment?.[0] && (
@@ -519,6 +525,7 @@ export default function WorkoutLogging() {
             onAddRest={() => setRest((r) => ({ left: r.left + 15, total: r.total + 15 }))}
             onLog={logStraight}
             onDone={closeSheet}
+            onShowNotes={() => setNotesOpen(true)}
           />
         )}
         {openRow && amrap && (
@@ -532,9 +539,19 @@ export default function WorkoutLogging() {
             onCompleteRound={completeRound}
             onFinish={finishAmrap}
             onDone={closeSheet}
+            onShowNotes={() => setNotesOpen(true)}
           />
         )}
       </Sheet>
+
+      {/* Exercise library notes — stacks over the exercise sheet (§3.5). */}
+      <NotesSheet
+        stack
+        open={Boolean(openRow) && notesOpen}
+        onClose={() => setNotesOpen(false)}
+        name={openRow?.exercise?.name}
+        notes={openRow?.exercise?.notes}
+      />
 
       {/* ── on-the-fly library picker ──────────────────────────────── */}
       <Sheet open={pickerOpen} onClose={() => setPickerOpen(false)}>
@@ -604,7 +621,7 @@ export default function WorkoutLogging() {
 }
 
 // ── straight-sets sheet ──────────────────────────────────────────────
-function StraightSheet({ row, sets, last, input, setInput, step, rest, onSkipRest, onAddRest, onLog, onDone }) {
+function StraightSheet({ row, sets, last, input, setInput, step, rest, onSkipRest, onAddRest, onLog, onDone, onShowNotes }) {
   const mt = row.exercise?.metric_type ?? 'weight'
   const target = row.target_sets ?? sets.length + 1
   const allLogged = sets.length >= target
@@ -640,7 +657,10 @@ function StraightSheet({ row, sets, last, input, setInput, step, rest, onSkipRes
     <>
       <div className="sheet-body">
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-          <span style={{ fontSize: 19, fontWeight: 600, letterSpacing: '-0.015em' }}>{row.exercise?.name}</span>
+          <button type="button" className="sheet-title-btn" onClick={onShowNotes}>
+            <span style={{ fontSize: 19, fontWeight: 600, letterSpacing: '-0.015em' }}>{row.exercise?.name}</span>
+            <NotePencil size={13} weight="bold" style={{ color: 'var(--text-4)', flex: 'none' }} />
+          </button>
           <span className="tnum" style={{ fontSize: 12, color: 'var(--text-4)' }}>
             {sets.length}/{target} sets
           </span>
@@ -742,7 +762,7 @@ function StraightSheet({ row, sets, last, input, setInput, step, rest, onSkipRes
 }
 
 // ── AMRAP sheet ──────────────────────────────────────────────────────
-function AmrapSheet({ row, amrap, setAmrap, onStart, onPause, onResume, onCompleteRound, onFinish, onDone }) {
+function AmrapSheet({ row, amrap, setAmrap, onStart, onPause, onResume, onCompleteRound, onFinish, onDone, onShowNotes }) {
   const { phase } = amrap
   const rounds = amrap.rounds ?? []
   const fullRounds = amrap.fullRounds ?? rounds.length
@@ -752,11 +772,22 @@ function AmrapSheet({ row, amrap, setAmrap, onStart, onPause, onResume, onComple
     <>
       <div className="sheet-body">
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-          <span style={{ fontSize: 19, fontWeight: 600, letterSpacing: '-0.015em' }}>{row.exercise?.name}</span>
+          <button type="button" className="sheet-title-btn" onClick={onShowNotes}>
+            <span style={{ fontSize: 19, fontWeight: 600, letterSpacing: '-0.015em' }}>{row.exercise?.name}</span>
+            <NotePencil size={13} weight="bold" style={{ color: 'var(--text-4)', flex: 'none' }} />
+          </button>
           <span className="tnum" style={{ fontSize: 12, color: 'var(--text-4)' }}>
             {mmss(amrap.timeCap)} AMRAP · {amrap.target}/round
           </span>
         </div>
+
+        {row.exercise?.notes?.trim() && (
+          <button type="button" className="amrap-notes-hint" onClick={onShowNotes}>
+            <NotePencil size={13} weight="bold" style={{ flex: 'none' }} />
+            <span>Round instructions</span>
+            <CaretRight size={12} weight="bold" style={{ flex: 'none', marginLeft: 'auto' }} />
+          </button>
+        )}
 
         {(phase === 'ready' || phase === 'running' || phase === 'paused') && (
           <div className="amrap-clock">

@@ -40,6 +40,14 @@ import {
 
 const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
+// "Mon Aug 25, Wed Aug 27, Thu Aug 28" — names the days a week-copy will overwrite
+// so the confirmation states exactly what's about to be replaced (§3.3).
+function conflictDayList(days) {
+  return days
+    .map((d) => `${DOW[fromISODate(d.date).getDay()]} ${shortDate(d.date)}`)
+    .join(', ')
+}
+
 const STRIP_STYLE = {
   logged: { bg: 'var(--accent-soft)', border: 'var(--accent-line)', num: 'var(--color-text)', dow: 'var(--color-accent-400)' },
   today: { bg: 'var(--accent-tint)', border: 'var(--color-accent)', num: 'var(--color-text)', dow: 'var(--accent-fg)' },
@@ -405,11 +413,19 @@ export default function Home() {
         title="Replace this week?"
         body={
           copyAsk &&
-          `${copyAsk.conflicts.length} day${copyAsk.conflicts.length === 1 ? '' : 's'} in ${weekRange(
+          `Copying ${weekRange(copyAsk.srcWeek)} over ${weekRange(
             copyAsk.destWeek,
-          )} already have workouts. Copying ${weekRange(copyAsk.srcWeek)} replaces them.`
+          )} replaces the existing workout${copyAsk.conflicts.length === 1 ? '' : 's'} on ${conflictDayList(
+            copyAsk.conflicts,
+          )}.`
         }
-        warn={copyAsk?.anyLogged ? 'Logged data for those days will be lost.' : null}
+        warn={
+          copyAsk?.anyLogged
+            ? `Logged data will be lost for ${conflictDayList(
+                copyAsk.conflicts.filter((d) => d.hasLogged),
+              )}.`
+            : null
+        }
         confirmLabel="Replace"
         onConfirm={() => runCopyWeek(copyAsk.srcWeek, copyAsk.destWeek)}
         onCancel={() => setCopyAsk(null)}

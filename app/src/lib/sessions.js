@@ -101,12 +101,16 @@ export async function completeSession(id) {
   if (error) throw error
 }
 
+// The exercise fields every session/day query embeds. `notes` backs the
+// tap-to-view-notes affordance on the Day Record and in-workout screens (§3.5).
+const EXERCISE_EMBED = 'exercise:exercises(name, equipment, metric_type, notes)'
+
 // One set (Straight Sets) or one round (AMRAP — set_number is the round number).
 export async function logSet(row) {
   const { data, error } = await supabase
     .from('logged_sets')
     .insert(row)
-    .select('*, exercise:exercises(name, equipment, metric_type)')
+    .select(`*, ${EXERCISE_EMBED}`)
     .single()
   if (error) throw error
   return data
@@ -145,7 +149,7 @@ export async function deleteSessionIfEmpty(id) {
   return false
 }
 
-const PLANNED_SELECT = '*, exercise:exercises(name, equipment, metric_type)'
+const PLANNED_SELECT = `*, ${EXERCISE_EMBED}`
 
 // Add a library exercise to a day, pre-filling every target from its defaults
 // (§3.4). AMRAP never gets target_sets.
@@ -203,12 +207,12 @@ export async function fetchDay(dateISO) {
   const [planned, logged] = await Promise.all([
     supabase
       .from('planned_exercises')
-      .select('*, exercise:exercises(name, equipment, metric_type)')
+      .select(PLANNED_SELECT)
       .eq('workout_session_id', session.id)
       .order('position'),
     supabase
       .from('logged_sets')
-      .select('*, exercise:exercises(name, equipment, metric_type)')
+      .select(`*, ${EXERCISE_EMBED}`)
       .eq('workout_session_id', session.id)
       .order('set_number'),
   ])

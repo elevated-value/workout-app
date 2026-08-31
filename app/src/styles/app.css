@@ -866,11 +866,17 @@ body { overflow: hidden; overscroll-behavior-y: none; -webkit-tap-highlight-colo
   display: flex;
   gap: 12px;
   align-items: center;
+  width: 100%;
   padding: 11px;
   border-radius: 8px;
   background: var(--row);
   border: 1px solid var(--line);
+  color: var(--color-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
 }
+.dr-row:hover { border-color: var(--text-5); }
 .dr-thumb {
   width: 42px;
   height: 42px;
@@ -1027,6 +1033,33 @@ body { overflow: hidden; overscroll-behavior-y: none; -webkit-tap-highlight-colo
   text-align: left;
 }
 .log-row:hover { border-color: var(--text-5); }
+
+/* tap-the-title-for-notes affordance inside the exercise sheet (§3.5) */
+.sheet-title-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--color-text);
+  cursor: pointer;
+}
+.amrap-notes-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--accent-line);
+  background: var(--accent-soft);
+  color: var(--accent-fg);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
 
 .log-finish {
   width: 100%;

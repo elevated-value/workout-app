@@ -3,7 +3,7 @@
 **Owner:** Jeff
 **Purpose:** A mobile-first web app used on an Android phone, in the gym, to (1) see/build the day's workout and (2) log sets/reps/weight during the workout and (3) review progress over time. Modeled loosely on Ladder — a curated workout experience built around the equipment Jeff actually owns (kettlebells, dumbbells, barbells, bench, etc.), not a generic exercise database.
 
-Last updated: 2026-08-28 (rev. 22)
+Last updated: 2026-08-28 (rev. 25)
 
 ---
 
@@ -83,6 +83,7 @@ Since there's no recurring program in v1, copying is the primary way Jeff avoids
 
 ### 3.5 Workout Logging (in-gym experience)
 - "Today's Workout" view shows that day's defined workout, or lets Jeff build one on the spot if nothing's been defined yet.
+- **Viewing an exercise's library notes:** tapping an exercise — from the day's exercise list (Day Record view) or from its card on the active in-workout logging screen — opens its `Exercise.notes` (Section 4), if any is set. This matters in particular for the "single Exercise as circuit" AMRAP workaround (e.g. a custom exercise named "Kettlebell Circuit" whose notes spell out the round composition — "10 rows, 10 goblet squats, 10 push-ups...") — the notes are literally the instructions for what to do each round, so they need to be reachable at a glance mid-workout, not just from the Library. This applies to every exercise regardless of format, not just AMRAP ones, though it matters most there. No exercise should be untappable — even an AMRAP exercise's row/card must open something even if it has no notes set (an empty/no-notes state, not a dead tap).
 - For each exercise: log its primary metric (weight, BW ± modifier, or time — per the exercise's metric type, Section 3.1) and reps, plus an optional effort rating (Easy/Mod/Hard/Max) and notes, per set.
 - Auto-fill previous performance for that exercise as a reference ("last time: 45 lb x 10," or "last time: BW x 7" for bodyweight, or "last time: 1:42" for a timed run).
 - Built-in rest timer between sets (start automatically after logging a set, or manually), pre-set to that exercise's rest period for the day (Section 3.4) — defaulted from the library, adjustable per day.
@@ -108,8 +109,8 @@ Since there's no recurring program in v1, copying is the primary way Jeff avoids
 - **Chart window:** shows the most recent sessions by default (e.g. last 10–15 data points) for legibility on a phone screen, with a way to expand to full history if Jeff wants to see further back.
 
 ### 3.7 Home Screen & Day Records
-- **Home screen** is the app's landing view. It shows: a weekly calendar strip (Mon–Sun), a current streak indicator, and a featured card for the selected day — either that day's defined workout or a prompt to build one if nothing's been defined yet.
-- **Swipeable weekly strip (rev. 24):** the strip is not locked to the current week. Swiping left/right on the strip itself — or small left/right chevron controls alongside it, since a swipe affordance isn't always obvious — moves it to the previous/next Mon–Sun week, updating the date range and each day's state (Logged/Defined/Missed/Empty) accordingly. The featured card below stays keyed to whichever day is **selected** in the strip: it defaults to today when the app first opens, and follows selection as Jeff taps different days within a swiped-to week (a tap still opens that day's Day Record, exactly as before — this is only about which week the strip shows). A quick way back to the current week is available when the strip has been moved off it.
+- **Home screen** is the app's landing view. It shows: a weekly calendar strip (Mon–Sun, current week), a current streak indicator, and a featured card for today — either today's defined workout or a prompt to build one if nothing's been defined yet.
+- **Weekly strip navigation:** the weekly strip itself is swipeable/scrollable left and right to move to the previous or next week, not locked to just the current week — this is a faster path than jumping to the full month calendar for browsing a week or two out in either direction. Swiping to a different week updates the strip's date range and day states accordingly; the featured card below stays keyed to whichever specific day is selected within the strip (defaulting to today when the app opens). Left/right chevron affordances alongside the swipe gesture are a reasonable addition for discoverability, since a swipeable strip isn't always obvious at a glance.
 - **Day Record:** every calendar date resolves to a record when tapped, regardless of past/present/future:
   - **Logged day** — a workout was actually completed (or is in progress) that date → tapping shows that session's summary/log.
   - **Defined, not yet logged** (today or future) → tapping shows a preview of that day's planned exercises with a "Start" action.
@@ -172,8 +173,8 @@ Constraint: **must run entirely on free tiers, no ongoing cost.**
 - Mobile-first responsive design; primary breakpoint is a single Android phone screen, portrait orientation.
 - Fast load and snappy interaction — this is used mid-workout, not browsed leisurely.
 - Minimal data entry friction: numeric keypads for weight/reps, large touch targets, avoid unnecessary confirmation dialogs.
+- **The bottom navigation bar (Today/Library/Progress) must be persistent on every screen in the app, with no exceptions** — including the workout-complete/summary view, Day Record, in-workout logging, and any other single-purpose or "back button only" screen. This is a deliberate safety net: a back arrow or in-app navigation action can fail or feel ambiguous, but the bottom nav is always a reliable way back to Home. No screen should rely solely on a back button as its only way out. Only true modal overlays (bottom sheets, confirmation dialogs) may temporarily cover it while open.
 - Installable as a PWA (manifest.json, app icon, theme color, standalone display mode).
-- **Persistent bottom navigation (rev. 23) — hard requirement, every screen, no exceptions.** The bottom nav (Today / Library / Progress) stays visible and fixed on *every* screen: Home, Library, Manage Library / Add-Edit Exercise, Progress and its detail views, Body Weight, Day Record, the day builder / edit-a-day screen, in-workout logging (Straight Sets *and* AMRAP), the workout-complete summary, Copy flows — all of them. No full screen may be "back-arrow only." An in-app back action can fail or feel ambiguous depending on how the user navigated in (e.g. a screen reached by *finishing a workout* rather than a normal page load); the bottom nav is the one always-reliable way home. Only true modal overlays — bottom sheets and confirmation dialogs — may temporarily cover the nav while open. A screen may still show its own back arrow / Done / Cancel affordance in addition, but never as the only exit. The one intentional exception is the pre-auth Login screen, which has no navigation destinations. This applies to every screen already built and every screen still to build.
 
 ## 7. Out of Scope for v1 (future enhancements)
 
