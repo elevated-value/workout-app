@@ -13,30 +13,32 @@ import {
   Barbell,
 } from '@phosphor-icons/react'
 import { TopBar, Loading, ErrorNote, Toast, Confirm, NotesSheet } from '../components/ui.jsx'
+import SetEditSheet from '../components/SetEditSheet.jsx'
 import DatePickerSheet from '../components/DatePickerSheet.jsx'
 import { useToast } from '../lib/useToast.js'
-import { fetchDay, dayStatus } from '../lib/sessions.js'
+import { fetchDay, dayStatus, updateLoggedSet } from '../lib/sessions.js'
+import { fetchSettings } from '../lib/settings.js'
 import { copyDayTo, dayContent } from '../lib/copy.js'
-import { todayISO, longDate, shortDate, mmss, metricValueLabel, plannedTargetLabel, formatTag } from '../lib/format.js'
+import {
+  todayISO,
+  longDate,
+  shortDate,
+  mmss,
+  metricValueLabel,
+  plannedTargetLabel,
+  formatTag,
+  effortColor,
+  effortLabel,
+} from '../lib/format.js'
 
 // Day Record (§3.7) — every date resolves to one of: logged (or in progress),
 // scheduled, missed, or an empty open day. Never a dead end.
 
-function loggedDetail(sets, metricType) {
-  if (!sets.length) return 'Not logged'
-  if (metricType === 'time') {
-    return sets.map((s) => (s.duration != null ? mmss(s.duration) : '–')).join(' / ')
-  }
-  const vals = sets.map((s) => metricValueLabel(metricType, { weight: s.weight, duration: s.duration }))
-  const uniq = [...new Set(vals)]
-  return uniq.length === 1 ? `${sets.length}× ${uniq[0]}` : vals.join(' / ')
-}
-
-// Every exercise row is tappable → opens its library notes (§3.5, rev. 25),
-// even when it has none (the sheet shows an empty state, never a dead tap).
-function ExerciseRow({ name, equip, tag, detail, dim, icon, hasNotes, onClick }) {
+// Scheduled/missed row: not yet logged, so the whole row just opens the
+// exercise's library notes (§3.5, rev. 25) — never a dead tap, even with none.
+function ExerciseRow({ name, equip, tag, detail, icon, hasNotes, onClick }) {
   return (
-    <button type="button" className={`dr-row${dim ? ' dim' : ''}`} onClick={onClick}>
+    <button type="button" className="dr-row" onClick={onClick}>
       <span className="dr-thumb" />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
@@ -53,6 +55,72 @@ function ExerciseRow({ name, equip, tag, detail, dim, icon, hasNotes, onClick })
       </div>
       {icon}
     </button>
+  )
+}
+
+// One already-logged set or AMRAP round — tappable to correct it in place,
+// whether it was logged moments ago or weeks back (§3.4, rev. 27).
+function LoggedSetRow({ index, set, metricType, isAmrap, onClick }) {
+  const label = isAmrap ? (set.is_partial ? 'Partial' : `Round ${index + 1}`) : `Set ${index + 1}`
+  const valueLabel = isAmrap
+    ? `${set.reps} reps`
+    : `${metricValueLabel(metricType, { weight: set.weight, duration: set.duration })} × ${set.reps}`
+  return (
+    <button type="button" className="dr-set-row" onClick={onClick}>
+      <span className="dr-set-label">{label}</span>
+      <span className="tnum dr-set-value">{valueLabel}</span>
+      {!isAmrap && set.effort && (
+        <span className="dr-set-effort" style={{ color: effortColor(set.effort) }}>
+          {effortLabel(set.effort)}
+        </span>
+      )}
+    </button>
+  )
+}
+
+// Logged exercise card ("What you did"). The header still opens the
+// exercise's library notes (§3.5, rev. 25); each set/round beneath it is its
+// own tappable row to correct that value in place (§3.4, rev. 27).
+function LoggedExerciseCard({ name, equip, tag, done, hasNotes, onShowNotes, sets, metricType, isAmrap, onEditSet }) {
+  const rounds = isAmrap ? sets.filter((s) => !s.is_partial).sort((a, b) => a.set_number - b.set_number) : sets
+  const partial = isAmrap ? sets.find((s) => s.is_partial) : null
+  return (
+    <div className={`dr-card${done ? '' : ' dim'}`}>
+      <button type="button" className="dr-card-head" onClick={onShowNotes}>
+        <span className="dr-thumb" />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+            {tag && <span className="dr-sets tnum">{tag}</span>}
+            <span className="dr-name">{name}</span>
+            {hasNotes && (
+              <NotePencil size={12} weight="bold" style={{ color: 'var(--text-4)', flex: 'none' }} />
+            )}
+          </div>
+          {equip && (
+            <div style={{ marginTop: 6 }}>
+              <span className="pill">{equip}</span>
+            </div>
+          )}
+        </div>
+        {done ? (
+          <CheckCircle size={16} weight="bold" style={{ color: 'var(--color-accent)', flex: 'none' }} />
+        ) : (
+          <MinusCircle size={16} weight="bold" style={{ color: 'var(--text-5)', flex: 'none' }} />
+        )}
+      </button>
+      {done ? (
+        <div className="dr-set-list">
+          {rounds.map((s, i) => (
+            <LoggedSetRow key={s.id} index={i} set={s} metricType={metricType} isAmrap={isAmrap} onClick={() => onEditSet(s, isAmrap)} />
+          ))}
+          {partial && (
+            <LoggedSetRow key={partial.id} index={rounds.length} set={partial} metricType={metricType} isAmrap={isAmrap} onClick={() => onEditSet(partial, isAmrap)} />
+          )}
+        </div>
+      ) : (
+        <div className="dr-set-empty">Not logged</div>
+      )}
+    </div>
   )
 }
 
@@ -75,18 +143,48 @@ export default function DayRecord() {
   const [pendingCopy, setPendingCopy] = useState(null) // { destDate, hasLogged, navigateAfter }
   const [copyBusy, setCopyBusy] = useState(false)
   const [notesFor, setNotesFor] = useState(null) // { name, notes } | null
+  const [step, setStep] = useState(5)
+  const [editingSet, setEditingSet] = useState(null) // logged_set being corrected (§3.4, rev. 27)
+  const [editingFormat, setEditingFormat] = useState(null) // format resolved by the card it came from
 
   useEffect(() => {
     let live = true
     setData(null)
     setErr(null)
-    fetchDay(date)
-      .then((d) => live && setData(d))
+    Promise.all([fetchDay(date), fetchSettings()])
+      .then(([d, settings]) => {
+        if (!live) return
+        setData(d)
+        setStep(Number(settings.weight_step) || 5)
+      })
       .catch((e) => live && setErr(e.message ?? 'Could not load this day.'))
     return () => {
       live = false
     }
   }, [date])
+
+  // `isAmrap` here is resolved the same way LoggedExerciseCard resolves it
+  // (preferring the planned row's frozen format over the exercise's current
+  // library format), so the edit sheet can't be fooled by a since-changed
+  // Format on the exercise itself (§3.4, rev. 27).
+  function handleEditSet(set, isAmrap) {
+    setEditingSet(set)
+    setEditingFormat(isAmrap ? 'amrap' : 'straight_sets')
+  }
+
+  // Correct an already-logged set/round in place (§3.4, rev. 27) — no
+  // confirmation, direct overwrite; works for a workout logged moments ago or
+  // completed weeks back.
+  async function saveEditedSet(patch) {
+    try {
+      const saved = await updateLoggedSet(editingSet.id, patch)
+      setData((d) => ({ ...d, logged: d.logged.map((s) => (s.id === saved.id ? saved : s)) }))
+      setEditingSet(null)
+      setEditingFormat(null)
+    } catch (e) {
+      setErr(e.message ?? 'Could not save that set.')
+    }
+  }
 
   // Copy this day's structure elsewhere (§3.3). Confirm first only when the
   // destination already holds something.
@@ -267,45 +365,53 @@ export default function DayRecord() {
                 const sets = loggedByExercise[p.exercise_id] ?? []
                 const isLoggedView = mode === 'logged'
                 const done = sets.length > 0
-                return (
+                return isLoggedView ? (
+                  <LoggedExerciseCard
+                    key={p.id}
+                    name={p.exercise?.name ?? 'Exercise'}
+                    equip={p.exercise?.equipment?.[0]}
+                    tag={formatTag(p)}
+                    done={done}
+                    hasNotes={Boolean(p.exercise?.notes?.trim())}
+                    onShowNotes={() =>
+                      setNotesFor({ name: p.exercise?.name ?? 'Exercise', notes: p.exercise?.notes })
+                    }
+                    sets={sets}
+                    metricType={mt}
+                    isAmrap={(p.format ?? p.exercise?.format) === 'amrap'}
+                    onEditSet={handleEditSet}
+                  />
+                ) : (
                   <ExerciseRow
                     key={p.id}
                     name={p.exercise?.name ?? 'Exercise'}
                     equip={p.exercise?.equipment?.[0]}
                     tag={formatTag(p)}
-                    detail={isLoggedView ? loggedDetail(sets, mt) : plannedTargetLabel(p)}
-                    dim={isLoggedView && !done}
+                    detail={plannedTargetLabel(p)}
                     hasNotes={Boolean(p.exercise?.notes?.trim())}
                     onClick={() =>
                       setNotesFor({ name: p.exercise?.name ?? 'Exercise', notes: p.exercise?.notes })
                     }
-                    icon={
-                      isLoggedView ? (
-                        done ? (
-                          <CheckCircle size={16} weight="bold" style={{ color: 'var(--color-accent)', flex: 'none' }} />
-                        ) : (
-                          <MinusCircle size={16} weight="bold" style={{ color: 'var(--text-5)', flex: 'none' }} />
-                        )
-                      ) : (
-                        <CircleDashed size={16} weight="bold" style={{ color: 'var(--text-5)', flex: 'none' }} />
-                      )
-                    }
+                    icon={<CircleDashed size={16} weight="bold" style={{ color: 'var(--text-5)', flex: 'none' }} />}
                   />
                 )
               })}
 
               {extraGroups.map((g) => (
-                <ExerciseRow
+                <LoggedExerciseCard
                   key={g.id}
                   name={g.exercise?.name ?? 'Exercise'}
                   equip={g.exercise?.equipment?.[0]}
                   tag=""
-                  detail={loggedDetail(g.sets, g.exercise?.metric_type ?? 'weight')}
+                  done
                   hasNotes={Boolean(g.exercise?.notes?.trim())}
-                  onClick={() =>
+                  onShowNotes={() =>
                     setNotesFor({ name: g.exercise?.name ?? 'Exercise', notes: g.exercise?.notes })
                   }
-                  icon={<CheckCircle size={16} weight="bold" style={{ color: 'var(--color-accent)', flex: 'none' }} />}
+                  sets={g.sets}
+                  metricType={g.exercise?.metric_type ?? 'weight'}
+                  isAmrap={g.exercise?.format === 'amrap'}
+                  onEditSet={setEditingSet}
                 />
               ))}
             </div>
@@ -396,6 +502,21 @@ export default function DayRecord() {
         onClose={() => setNotesFor(null)}
         name={notesFor?.name}
         notes={notesFor?.notes}
+      />
+
+      {/* Correcting an already-logged set — reachable from a completed workout
+          weeks back, not just one still in progress (§3.4, rev. 27). */}
+      <SetEditSheet
+        key={editingSet?.id ?? 'none'}
+        open={Boolean(editingSet)}
+        onClose={() => {
+          setEditingSet(null)
+          setEditingFormat(null)
+        }}
+        setRow={editingSet}
+        format={editingFormat}
+        step={step}
+        onSave={saveEditedSet}
       />
 
       <Toast message={message} />

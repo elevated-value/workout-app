@@ -103,7 +103,9 @@ export async function completeSession(id) {
 
 // The exercise fields every session/day query embeds. `notes` backs the
 // tap-to-view-notes affordance on the Day Record and in-workout screens (§3.5).
-const EXERCISE_EMBED = 'exercise:exercises(name, equipment, metric_type, notes)'
+// `format` lets a logged set be edited with the right controls even when it
+// wasn't part of this day's plan (§3.4, rev. 27).
+const EXERCISE_EMBED = 'exercise:exercises(name, equipment, metric_type, notes, format)'
 
 // One set (Straight Sets) or one round (AMRAP — set_number is the round number).
 export async function logSet(row) {
@@ -119,6 +121,22 @@ export async function logSet(row) {
 export async function deleteLoggedSet(id) {
   const { error } = await supabase.from('logged_sets').delete().eq('id', id)
   if (error) throw error
+}
+
+// Correct an already-logged set's values in place — no versioning, no
+// separate recalculation step: PRs and Progress charts read logged_sets
+// directly, so a correction here flows through everywhere on its own (§3.4,
+// rev. 27). Works regardless of the workout's status (in progress, just
+// finished, or completed weeks ago).
+export async function updateLoggedSet(id, patch) {
+  const { data, error } = await supabase
+    .from('logged_sets')
+    .update(patch)
+    .eq('id', id)
+    .select(`*, ${EXERCISE_EMBED}`)
+    .single()
+  if (error) throw error
+  return data
 }
 
 // Most recent logged set for an exercise on any earlier date — the "last time"

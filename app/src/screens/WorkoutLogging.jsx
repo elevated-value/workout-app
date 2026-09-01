@@ -15,7 +15,8 @@ import {
   MagnifyingGlass,
   NotePencil,
 } from '@phosphor-icons/react'
-import { TopBar, Loading, ErrorNote, Sheet, Stepper, Confirm, Toast, NotesSheet } from '../components/ui.jsx'
+import { TopBar, Loading, ErrorNote, Sheet, Stepper, Confirm, Toast } from '../components/ui.jsx'
+import SetEditSheet from '../components/SetEditSheet.jsx'
 import { useToast } from '../lib/useToast.js'
 import { fetchExercises, fetchEquipment } from '../lib/library.js'
 import { fetchSettings } from '../lib/settings.js'
@@ -28,6 +29,7 @@ import {
   deleteSessionIfEmpty,
   addPlannedExercise,
   logSet,
+  updateLoggedSet,
   fetchLastPerformance,
 } from '../lib/sessions.js'
 import {
@@ -73,11 +75,11 @@ export default function WorkoutLogging() {
   const [now, setNow] = useState(Date.now())
   const [rest, setRest] = useState(null) // { left, total }
   const [openId, setOpenId] = useState(null)
-  const [input, setInput] = useState({ weight: 0, duration: 60, reps: 8, effort: null })
+  const [input, setInput] = useState({ weight: 0, duration: 60, reps: 8, effort: null, notes: '' })
   const [amrap, setAmrap] = useState(null)
   const [lastPerf, setLastPerf] = useState({})
   const [finishAsk, setFinishAsk] = useState(false)
-  const [notesOpen, setNotesOpen] = useState(false)
+  const [editingSet, setEditingSet] = useState(null) // logged_set being corrected (§3.4, rev. 27)
 
   const sessionRef = useRef(null)
   sessionRef.current = session
@@ -165,9 +167,11 @@ export default function WorkoutLogging() {
 
   async function openExercise(row) {
     setOpenId(row.id)
+    setEditingSet(null)
     const sets = logged[row.exercise_id] ?? []
 
     if (row.format === 'amrap') {
+      setInput((i) => ({ ...i, notes: '' }))
       if (sets.length) {
         const full = sets.filter((s) => !s.is_partial)
         const partialSet = sets.find((s) => s.is_partial)
@@ -201,6 +205,7 @@ export default function WorkoutLogging() {
       duration: row.target_duration ?? 60,
       reps: row.target_reps ?? 8,
       effort: null,
+      notes: '',
     })
     if (lastPerf[row.exercise_id] === undefined) {
       try {
@@ -215,7 +220,7 @@ export default function WorkoutLogging() {
   function closeSheet() {
     setOpenId(null)
     setAmrap(null)
-    setNotesOpen(false)
+    setEditingSet(null)
   }
 
   async function logStraight() {
@@ -232,12 +237,13 @@ export default function WorkoutLogging() {
         weight: mt === 'time' ? null : input.weight,
         duration: mt === 'time' ? input.duration : null,
         effort: input.effort,
+        notes: input.notes?.trim() || null,
         is_partial: false,
       })
       setLogged((m) => ({ ...m, [row.exercise_id]: [...(m[row.exercise_id] ?? []), saved] }))
       const target = row.target_sets ?? setNumber
       const more = setNumber < target
-      setInput((i) => ({ ...i, effort: null }))
+      setInput((i) => ({ ...i, effort: null, notes: '' }))
       if (more && row.rest_seconds) setRest({ left: row.rest_seconds, total: row.rest_seconds })
       if (!more) setTimeout(() => setOpenId((id) => (id === row.id ? null : id)), 450)
     } catch (e) {
@@ -257,6 +263,7 @@ export default function WorkoutLogging() {
         weight: row.target_weight ?? null,
         duration: null,
         effort: null,
+        notes: input.notes?.trim() || null,
         is_partial: false,
       })
       setLogged((m) => ({ ...m, [row.exercise_id]: [...(m[row.exercise_id] ?? []), saved] }))
@@ -266,6 +273,7 @@ export default function WorkoutLogging() {
         adjusting: false,
         adjustVal: a.target,
       }))
+      setInput((i) => ({ ...i, notes: '' }))
     } catch (e) {
       setErr(e.message ?? 'Could not log that round.')
     }
@@ -284,9 +292,11 @@ export default function WorkoutLogging() {
           weight: row.target_weight ?? null,
           duration: null,
           effort: null,
+          notes: input.notes?.trim() || null,
           is_partial: true,
         })
         setLogged((m) => ({ ...m, [row.exercise_id]: [...(m[row.exercise_id] ?? []), saved] }))
+        setInput((i) => ({ ...i, notes: '' }))
       }
       setAmrap((a) => ({
         ...a,
@@ -295,6 +305,22 @@ export default function WorkoutLogging() {
       }))
     } catch (e) {
       setErr(e.message ?? 'Could not log the score.')
+    }
+  }
+
+  // Correct an already-logged set/round in place (§3.4, rev. 27) — no
+  // confirmation, direct overwrite.
+  async function saveEditedSet(patch) {
+    const exerciseId = editingSet.exercise_id
+    try {
+      const saved = await updateLoggedSet(editingSet.id, patch)
+      setLogged((m) => ({
+        ...m,
+        [exerciseId]: (m[exerciseId] ?? []).map((s) => (s.id === saved.id ? saved : s)),
+      }))
+      setEditingSet(null)
+    } catch (e) {
+      setErr(e.message ?? 'Could not save that set.')
     }
   }
 
@@ -525,32 +551,39 @@ export default function WorkoutLogging() {
             onAddRest={() => setRest((r) => ({ left: r.left + 15, total: r.total + 15 }))}
             onLog={logStraight}
             onDone={closeSheet}
-            onShowNotes={() => setNotesOpen(true)}
+            onEditSet={setEditingSet}
           />
         )}
         {openRow && amrap && (
           <AmrapSheet
             row={openRow}
+            sets={logged[openRow.exercise_id] ?? []}
             amrap={amrap}
             setAmrap={setAmrap}
+            input={input}
+            setInput={setInput}
             onStart={() => setAmrap((a) => ({ ...a, phase: 'running' }))}
             onPause={() => setAmrap((a) => ({ ...a, phase: 'paused' }))}
             onResume={() => setAmrap((a) => ({ ...a, phase: 'running' }))}
             onCompleteRound={completeRound}
             onFinish={finishAmrap}
             onDone={closeSheet}
-            onShowNotes={() => setNotesOpen(true)}
+            onEditSet={setEditingSet}
           />
         )}
       </Sheet>
 
-      {/* Exercise library notes — stacks over the exercise sheet (§3.5). */}
-      <NotesSheet
+      {/* Correcting an already-logged set — stacks over the exercise sheet
+          (§3.4, rev. 27), same as the exercise-notes sheet pattern. */}
+      <SetEditSheet
+        key={editingSet?.id ?? 'none'}
         stack
-        open={Boolean(openRow) && notesOpen}
-        onClose={() => setNotesOpen(false)}
-        name={openRow?.exercise?.name}
-        notes={openRow?.exercise?.notes}
+        open={Boolean(editingSet)}
+        onClose={() => setEditingSet(null)}
+        setRow={editingSet}
+        format={openRow?.format}
+        step={step}
+        onSave={saveEditedSet}
       />
 
       {/* ── on-the-fly library picker ──────────────────────────────── */}
@@ -621,7 +654,7 @@ export default function WorkoutLogging() {
 }
 
 // ── straight-sets sheet ──────────────────────────────────────────────
-function StraightSheet({ row, sets, last, input, setInput, step, rest, onSkipRest, onAddRest, onLog, onDone, onShowNotes }) {
+function StraightSheet({ row, sets, last, input, setInput, step, rest, onSkipRest, onAddRest, onLog, onDone, onEditSet }) {
   const mt = row.exercise?.metric_type ?? 'weight'
   const target = row.target_sets ?? sets.length + 1
   const allLogged = sets.length >= target
@@ -657,14 +690,21 @@ function StraightSheet({ row, sets, last, input, setInput, step, rest, onSkipRes
     <>
       <div className="sheet-body">
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-          <button type="button" className="sheet-title-btn" onClick={onShowNotes}>
-            <span style={{ fontSize: 19, fontWeight: 600, letterSpacing: '-0.015em' }}>{row.exercise?.name}</span>
-            <NotePencil size={13} weight="bold" style={{ color: 'var(--text-4)', flex: 'none' }} />
-          </button>
+          <span style={{ fontSize: 19, fontWeight: 600, letterSpacing: '-0.015em' }}>{row.exercise?.name}</span>
           <span className="tnum" style={{ fontSize: 12, color: 'var(--text-4)' }}>
             {sets.length}/{target} sets
           </span>
         </div>
+
+        {row.exercise?.notes?.trim() && (
+          <div className="exercise-notes-inline">
+            <div className="exercise-notes-inline-label">
+              <NotePencil size={12} weight="bold" />
+              Notes
+            </div>
+            <p className="exercise-notes-inline-text">{row.exercise.notes.trim()}</p>
+          </div>
+        )}
 
         <div className="set-table">
           <div className="set-row set-head">
@@ -674,14 +714,14 @@ function StraightSheet({ row, sets, last, input, setInput, step, rest, onSkipRes
             <span>Effort</span>
           </div>
           {sets.map((s, i) => (
-            <div key={s.id} className="set-row">
+            <button type="button" key={s.id} className="set-row" onClick={() => onEditSet(s)}>
               <span className="tnum" style={{ color: 'var(--color-accent)', fontWeight: 600 }}>{i + 1}</span>
               <span className="tnum">{metricValueLabel(mt, { weight: s.weight, duration: s.duration })}</span>
               <span className="tnum">{s.reps}</span>
               <span style={{ color: EFFORTS.find((e) => e.key === s.effort)?.color ?? 'var(--text-5)' }}>
                 {EFFORTS.find((e) => e.key === s.effort)?.label ?? '—'}
               </span>
-            </div>
+            </button>
           ))}
           {!allLogged && (
             <div className="set-row set-active">
@@ -692,6 +732,15 @@ function StraightSheet({ row, sets, last, input, setInput, step, rest, onSkipRes
             </div>
           )}
         </div>
+
+        {!allLogged && !rest && (
+          <textarea
+            className="set-notes-input"
+            placeholder={`Notes for set ${setNo} (optional)`}
+            value={input.notes}
+            onChange={(e) => setInput((i) => ({ ...i, notes: e.target.value }))}
+          />
+        )}
       </div>
 
       <div className="action-bar">
@@ -762,31 +811,52 @@ function StraightSheet({ row, sets, last, input, setInput, step, rest, onSkipRes
 }
 
 // ── AMRAP sheet ──────────────────────────────────────────────────────
-function AmrapSheet({ row, amrap, setAmrap, onStart, onPause, onResume, onCompleteRound, onFinish, onDone, onShowNotes }) {
+function AmrapSheet({ row, sets, amrap, setAmrap, input, setInput, onStart, onPause, onResume, onCompleteRound, onFinish, onDone, onEditSet }) {
   const { phase } = amrap
   const rounds = amrap.rounds ?? []
   const fullRounds = amrap.fullRounds ?? rounds.length
   const scoreLine = `${fullRounds} round${fullRounds === 1 ? '' : 's'}${amrap.partial ? ` + ${amrap.partial} reps` : ''}`
 
+  // Already-logged rounds, sourced from the real logged_sets rows (not the
+  // ephemeral amrap.rounds tally) so each pill carries an id to correct (§3.4,
+  // rev. 27). Shown across every phase once there's history, unlike the
+  // running clock's own round-target box below.
+  const loggedRounds = sets.filter((s) => !s.is_partial).sort((a, b) => a.set_number - b.set_number)
+  const partialSet = sets.find((s) => s.is_partial)
+
   return (
     <>
       <div className="sheet-body">
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-          <button type="button" className="sheet-title-btn" onClick={onShowNotes}>
-            <span style={{ fontSize: 19, fontWeight: 600, letterSpacing: '-0.015em' }}>{row.exercise?.name}</span>
-            <NotePencil size={13} weight="bold" style={{ color: 'var(--text-4)', flex: 'none' }} />
-          </button>
+          <span style={{ fontSize: 19, fontWeight: 600, letterSpacing: '-0.015em' }}>{row.exercise?.name}</span>
           <span className="tnum" style={{ fontSize: 12, color: 'var(--text-4)' }}>
             {mmss(amrap.timeCap)} AMRAP · {amrap.target}/round
           </span>
         </div>
 
         {row.exercise?.notes?.trim() && (
-          <button type="button" className="amrap-notes-hint" onClick={onShowNotes}>
-            <NotePencil size={13} weight="bold" style={{ flex: 'none' }} />
-            <span>Round instructions</span>
-            <CaretRight size={12} weight="bold" style={{ flex: 'none', marginLeft: 'auto' }} />
-          </button>
+          <div className="exercise-notes-inline">
+            <div className="exercise-notes-inline-label">
+              <NotePencil size={12} weight="bold" />
+              Notes
+            </div>
+            <p className="exercise-notes-inline-text">{row.exercise.notes.trim()}</p>
+          </div>
+        )}
+
+        {(loggedRounds.length > 0 || partialSet) && (
+          <div style={{ display: 'flex', gap: 6, marginTop: 12, flexWrap: 'wrap' }}>
+            {loggedRounds.map((s, i) => (
+              <button type="button" key={s.id} className="pill tnum" onClick={() => onEditSet(s)}>
+                R{i + 1}: {s.reps}
+              </button>
+            ))}
+            {partialSet && (
+              <button type="button" className="pill tnum" onClick={() => onEditSet(partialSet)}>
+                Partial: {partialSet.reps}
+              </button>
+            )}
+          </div>
         )}
 
         {(phase === 'ready' || phase === 'running' || phase === 'paused') && (
@@ -821,26 +891,15 @@ function AmrapSheet({ row, amrap, setAmrap, onStart, onPause, onResume, onComple
             </div>
 
             {phase !== 'ready' && (
-              <>
-                <div className="amrap-target">
-                  <div>
-                    <div className="log-stat-label">Round {rounds.length + 1}</div>
-                    <div style={{ fontSize: 11, color: 'var(--text-5)', marginTop: 4 }}>
-                      Target {amrap.target} reps
-                    </div>
+              <div className="amrap-target">
+                <div>
+                  <div className="log-stat-label">Round {rounds.length + 1}</div>
+                  <div style={{ fontSize: 11, color: 'var(--text-5)', marginTop: 4 }}>
+                    Target {amrap.target} reps
                   </div>
-                  <span className="tnum" style={{ fontSize: 28, fontWeight: 600 }}>{amrap.target}</span>
                 </div>
-                {rounds.length > 0 && (
-                  <div style={{ display: 'flex', gap: 6, marginTop: 12, flexWrap: 'wrap' }}>
-                    {rounds.map((r, i) => (
-                      <span key={i} className="pill tnum">
-                        R{i + 1}: {r}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </>
+                <span className="tnum" style={{ fontSize: 28, fontWeight: 600 }}>{amrap.target}</span>
+              </div>
             )}
           </div>
         )}
@@ -853,6 +912,15 @@ function AmrapSheet({ row, amrap, setAmrap, onStart, onPause, onResume, onComple
               {rounds.length} full round{rounds.length === 1 ? '' : 's'} logged. Add any reps from the final round.
             </div>
           </div>
+        )}
+
+        {(phase === 'running' || phase === 'paused' || phase === 'time') && (
+          <textarea
+            className="set-notes-input"
+            placeholder={phase === 'time' ? 'Notes for the final round (optional)' : `Notes for round ${rounds.length + 1} (optional)`}
+            value={input.notes}
+            onChange={(e) => setInput((i) => ({ ...i, notes: e.target.value }))}
+          />
         )}
 
         {phase === 'summary' && (
